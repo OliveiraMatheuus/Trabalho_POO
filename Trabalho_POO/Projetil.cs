@@ -25,9 +25,10 @@ namespace Trabalho_POO
         public DirecaoProjetil Direcao => _direcao;
 
         // ─── Construtor ──────────────────────────────────────────
-        public Projetil(int x, int y, DirecaoProjetil direcao, Image sprite)
+        // Projetil.cs — construtor atualizado
+        public Projetil(int x, int y, DirecaoProjetil direcao, Image sprite, int velocidade)
         {
-            _velocidade = 8;
+            _velocidade = velocidade; // ← vem da ConfiguracaoRodada
             _direcao = direcao;
 
             PictureBox = new PictureBox

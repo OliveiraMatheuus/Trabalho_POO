@@ -16,11 +16,11 @@ namespace Trabalho_POO
         void Mover();
     }
 
+    // EntidadeJogo.cs — IAtira atualizada
     public interface IAtira
     {
-        Projetil Atirar(Image spriteProjetil);
+        Projetil Atirar(Image spriteProjetil, int velocidade);
     }
-
     // ─── Classe Abstrata ─────────────────────────────────────────
 
     public abstract class EntidadeJogo

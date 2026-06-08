@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 
+
 namespace Trabalho_POO
 {
     public class Jogo
@@ -51,14 +52,18 @@ namespace Trabalho_POO
         private Random _random;
         private int _intervaloDisparoAlien;
         private int _contadorDisparoAlien;
+        
 
         // ─── Controle de movimento dos aliens ────────────────────
         private int _contadorMovimentoAlien;
         private int _intervaloMovimentoAlien;
 
+        private ConfiguracaoRodada _config;
+        private int _rodadaAtual;
+
         // ─── Construtor ──────────────────────────────────────────
         public Jogo(Form form, Image spriteNave, Image spriteAlien,
-                    Image spriteProjetilJogador, Image spriteProjetilAlien)
+            Image spriteProjetilJogador, Image spriteProjetilAlien)
         {
             _form = form;
             _spriteNave = spriteNave;
@@ -71,12 +76,15 @@ namespace Trabalho_POO
             _projetisAliens = new List<Projetil>();
             _random = new Random();
 
+            _config = new ConfiguracaoRodada();
+            _rodadaAtual = 1;
+
             _intervaloDisparo = 20;  // ticks entre disparos do jogador
             _contadorDisparo = 0;
             _intervaloDisparoAlien = 60;  // ticks entre disparos dos aliens
             _contadorDisparoAlien = 0;
-            _intervaloMovimentoAlien = 8;  // ticks entre cada passo dos aliens
-            _contadorMovimentoAlien = 0;
+            _intervaloDisparoAlien = _config.IntervaloDisparoAlien;
+            _intervaloMovimentoAlien = _config.IntervaloMovimento;
 
             _gerenciadorDeColisoes = new GerenciadorDeColisoes(form);
 
@@ -88,7 +96,12 @@ namespace Trabalho_POO
                 OnVidaPerdida?.Invoke(msg);
 
             _gerenciadorDeColisoes.OnDerrota += msg => EncerrarJogo(msg);
-            _gerenciadorDeColisoes.OnVitoria += msg => EncerrarJogo(msg);
+            // Jogo.cs — substituir OnVitoria no construtor
+            _gerenciadorDeColisoes.OnVitoria += msg =>
+            {
+                // ✅ Não encerra — avança para próxima rodada
+                _form.Invoke((Action)(() => AvancarRodada()));
+            };
         }
 
         // ─── Iniciar ─────────────────────────────────────────────
@@ -111,6 +124,7 @@ namespace Trabalho_POO
         }
 
         // ─── Criação dos aliens em matriz ────────────────────────
+        // Jogo.cs — CriarAliens() atualizado
         private void CriarAliens()
         {
             int linhas = 3;
@@ -133,7 +147,8 @@ namespace Trabalho_POO
                         _form,
                         _spriteAlien,
                         x, y,
-                        _form.ClientSize.Width
+                        _form.ClientSize.Width,
+                        _config.VelocidadeAlien  // ← velocidade da rodada atual
                     );
 
                     _aliens.Add(alien);
@@ -141,27 +156,68 @@ namespace Trabalho_POO
             }
         }
 
+        // Jogo.cs — novo método AvancarRodada()
+        // Jogo.cs — adicionar evento
+
+        public event EventoJogo OnRodadaAvancou;
+        private void AvancarRodada()
+        {
+            _config.Avancar();
+            _rodadaAtual++;
+
+            // Atualiza intervalos com os novos valores
+            _intervaloDisparoAlien = _config.IntervaloDisparoAlien;
+            _intervaloMovimentoAlien = _config.IntervaloMovimento;
+            _contadorDisparoAlien = 0;
+            _contadorMovimentoAlien = 0;
+
+            // Avisa o Form para atualizar o HUD
+            OnRodadaAvancou?.Invoke($"Rodada {_rodadaAtual}");
+
+            // Recria os aliens com nova velocidade
+            CriarAliens();
+        }
+
         // ─── Loop principal (roda em thread separada) ─────────────
+        // Jogo.cs — LoopJogo() corrigido
         private void LoopJogo()
         {
             while (_rodando)
             {
-                _form.Invoke((Action)(() =>
+                // ✅ Verifica se o Form ainda existe antes de Invoke
+                if (_form.IsDisposed || !_form.IsHandleCreated)
                 {
-                    ProcessarInput();
-                    MoverProjetis();
-                    MoverAliens();
-                    AliensAtirar();
-                    _gerenciadorDeColisoes.Verificar(
-                        _nave,
-                        _aliens,
-                        _projetisJogador,
-                        _projetisAliens,
-                        _form.ClientSize.Height
-                    );
-                }));
+                    _rodando = false;
+                    break;
+                }
 
-                Thread.Sleep(16); // ~60fps
+                try
+                {
+                    _form.Invoke((Action)(() =>
+                    {
+                        if (_form.IsDisposed) return;
+
+                        ProcessarInput();
+                        MoverProjetis();
+                        MoverAliens();
+                        AliensAtirar();
+                        _gerenciadorDeColisoes.Verificar(
+                            _nave,
+                            _aliens,
+                            _projetisJogador,
+                            _projetisAliens,
+                            _form.ClientSize.Height
+                        );
+                    }));
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Form foi fechado durante o Invoke — encerra a thread silenciosamente
+                    _rodando = false;
+                    break;
+                }
+
+                Thread.Sleep(16);
             }
         }
 
@@ -183,7 +239,8 @@ namespace Trabalho_POO
             // Controla cadência do disparo
             if (_atirar && _contadorDisparo <= 0)
             {
-                Projetil p = _nave.Atirar(_spriteProjetilJogador);
+                // Jogo.cs — ProcessarInput() 
+                Projetil p = _nave.Atirar(_spriteProjetilJogador, _config.VelocidadeProjetil);
                 _form.Controls.Add(p.PictureBox);
                 p.PictureBox.BringToFront();
                 _projetisJogador.Add(p);
@@ -202,6 +259,10 @@ namespace Trabalho_POO
         }
 
         // ─── Movimento dos aliens em grupo ────────────────────────
+        // Jogo.cs — MoverAliens() corrigido
+        // Jogo.cs — MoverAliens() reescrito
+
+        
         private void MoverAliens()
         {
             if (_aliens.Count == 0) return;
@@ -210,23 +271,26 @@ namespace Trabalho_POO
             if (_contadorMovimentoAlien < _intervaloMovimentoAlien) return;
             _contadorMovimentoAlien = 0;
 
-            // Verifica se algum alien tocou as bordas
-            bool tocouDireita = false;
-            bool tocouEsquerda = false;
+            // ✅ Simula o próximo passo ANTES de mover
+            bool tocouBorda = false;
 
             foreach (Alien alien in _aliens)
             {
-                if (alien.AlcancouBordaDireita()) tocouDireita = true;
-                if (alien.AlcancouBordaEsquerda()) tocouEsquerda = true;
+                int proximoX = alien.X + alien.VelocidadeAtual;
+
+                if (proximoX <= 0 || proximoX + 50 >= _form.ClientSize.Width)
+                {
+                    tocouBorda = true;
+                    break;
+                }
             }
 
-            // Inverte e desce o grupo todo
-            if (tocouDireita || tocouEsquerda)
+            if (tocouBorda)
             {
                 foreach (Alien alien in _aliens)
                 {
                     alien.InverterDirecao();
-                    alien.Descer();
+                    alien.Descer(15);
                 }
             }
             else
@@ -249,7 +313,8 @@ namespace Trabalho_POO
             int indice = _random.Next(_aliens.Count);
             Alien atirador = _aliens[indice];
 
-            Projetil p = atirador.Atirar(_spriteProjetilAlien);
+            // Jogo.cs — AliensAtirar()
+            Projetil p = atirador.Atirar(_spriteProjetilAlien, _config.VelocidadeProjetil);
             _form.Controls.Add(p.PictureBox);
             p.PictureBox.BringToFront();
             _projetisAliens.Add(p);

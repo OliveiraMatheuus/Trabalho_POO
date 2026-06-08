@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -18,6 +19,8 @@ namespace Trabalho_POO
         private Label _lblVidas;
         private Label _lblPlacar;
         private int _placar;
+        // FormJogo.cs — adicionar label de rodada
+        private Label _lblRodada;
 
         // ─── Sprites ─────────────────────────────────────────────
         private Image _spriteNave;
@@ -37,9 +40,14 @@ namespace Trabalho_POO
             ConfigurarForm();
             CarregarSprites();
             CriarHUD();
-            IniciarJogo();
         }
 
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            IniciarJogo();
+        }
+        
         // ─── Configuração do Form ────────────────────────────────
         private void ConfigurarForm()
         {
@@ -60,10 +68,10 @@ namespace Trabalho_POO
         {
             // Os arquivos devem estar em Resources/ com
             // Build Action = "Embedded Resource" ou "Content - Copy Always"
-            _spriteNave = Image.FromFile("Resources/nave.png");
-            _spriteAlien = Image.FromFile("Resources/alien.png");
-            _spriteProjetilJogador = Image.FromFile("Resources/projetil_jogador.png");
-            _spriteProjetilAlien = Image.FromFile("Resources/projetil_alien.png");
+            _spriteNave = Image.FromFile("hh.png");
+            _spriteAlien = Image.FromFile("alien-removebg-preview.png");
+            _spriteProjetilJogador = Image.FromFile("hh.png");
+            _spriteProjetilAlien = Image.FromFile("hh.png");
         }
 
         // ─── HUD (vidas e placar) ────────────────────────────────
@@ -88,6 +96,20 @@ namespace Trabalho_POO
                 AutoSize = true
             };
 
+            // FormJogo.cs — CriarHUD() adicionar
+            _lblRodada = new Label
+            {
+                Text = "Rodada: 1",
+                ForeColor = Color.Cyan,
+                BackColor = Color.Transparent,
+                Font = new Font("Arial", 14, FontStyle.Bold),
+                Location = new Point(this.ClientSize.Width / 2 - 50, 10),
+                AutoSize = true
+            };
+
+            this.Controls.Add(_lblRodada);
+            _lblRodada.BringToFront();
+
             // Alinha o placar à direita
             _lblPlacar.Location = new Point(
                 this.ClientSize.Width - 150, 10
@@ -97,6 +119,15 @@ namespace Trabalho_POO
             this.Controls.Add(_lblPlacar);
             _lblVidas.BringToFront();
             _lblPlacar.BringToFront();
+        }
+        // FormJogo.cs — novo método
+        private void AtualizarRodada(string mensagem)
+        {
+            this.Invoke((Action)(() =>
+            {
+                _lblRodada.Text = mensagem;
+                _lblRodada.BringToFront();
+            }));
         }
 
         // ─── Iniciar jogo ─────────────────────────────────────────
@@ -116,6 +147,8 @@ namespace Trabalho_POO
             _jogo.OnVidaPerdida += AtualizarVidas;
             _jogo.OnAlienDestruido += AtualizarPlacar;
             _jogo.OnJogoEncerrado += MostrarResultado;
+            // FormJogo.cs — inscrever no novo evento dentro de IniciarJogo()
+            _jogo.OnRodadaAvancou += AtualizarRodada;
 
             _jogo.Iniciar();
         }
@@ -198,6 +231,7 @@ namespace Trabalho_POO
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _jogo?.Parar();
+            Thread.Sleep(50);
             base.OnFormClosing(e);
         }
     }

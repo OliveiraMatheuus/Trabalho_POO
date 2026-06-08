@@ -54,12 +54,13 @@ namespace Trabalho_POO
         }
 
         // ─── IAtira ──────────────────────────────────────────────
-        public Projetil Atirar(Image spriteProjetil)
+        // NaveJogador.cs — Atirar atualizado
+        public Projetil Atirar(Image spriteProjetil, int velocidade)
         {
             int projetilX = PictureBox.Left + (PictureBox.Width / 2) - 5;
             int projetilY = PictureBox.Top - 20;
 
-            return new Projetil(projetilX, projetilY, DirecaoProjetil.Cima, spriteProjetil);
+            return new Projetil(projetilX, projetilY, DirecaoProjetil.Cima, spriteProjetil, velocidade);
         }
 
         // ─── Vida ────────────────────────────────────────────────
