@@ -1,9 +1,0 @@
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\obj\Debug\Trabalho_POO.csproj.AssemblyReference.cache
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\obj\Debug\Trabalho_POO.Properties.Resources.resources
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\obj\Debug\Trabalho_POO.csproj.GenerateResource.cache
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\obj\Debug\Trabalho_POO.csproj.CoreCompileInputs.cache
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\bin\Debug\Trabalho_POO.exe.config
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\bin\Debug\Trabalho_POO.exe
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\bin\Debug\Trabalho_POO.pdb
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\obj\Debug\Trabalho_POO.exe
-C:\Users\Y8kne\source\repos\Trabalho_POO\Trabalho_POO\obj\Debug\Trabalho_POO.pdb
