@@ -1,23 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
 namespace Trabalho_POO
 {
-    internal abstract class EntidadeJogo
+    // ─── Interfaces ──────────────────────────────────────────────
+
+    public interface IMovivel
     {
-        public PictureBox Sprite { get; protected set; }
-        public int Velocidade { get; protected set; }
-        public int Vidas { get; set; }
-        public abstract void Mover();
+        void Mover();
     }
 
-    public interface Destruivel
+    public interface IAtira
     {
-        void ReceberDano();
-        void Destruir();
+        Projetil Atirar(Image spriteProjetil);
+    }
+
+    // ─── Classe Abstrata ─────────────────────────────────────────
+
+    public abstract class EntidadeJogo
+    {
+        public PictureBox PictureBox { get; protected set; }
+
+        public Rectangle Bounds => PictureBox.Bounds;
+        public int X => PictureBox.Left;
+        public int Y => PictureBox.Top;
+
+        public virtual void Remover(Form form)
+        {
+            form.Controls.Remove(PictureBox);
+            PictureBox.Dispose();
+        }
     }
 }

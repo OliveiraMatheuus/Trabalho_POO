@@ -1,71 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
 namespace Trabalho_POO
 {
-    public delegate void EntidadeDestruidaHandler();
-
-    internal class NaveJogador : EntidadeJogo, Destruivel
+    public class NaveJogador : EntidadeJogo, IAtira
     {
-        public event EntidadeDestruidaHandler Destruida;
+        // ─── Atributos ───────────────────────────────────────────
+        private int _vidas;
+        private int _velocidade;
+        private int _larguraTela;
 
-        // --- CONSTRUTOR ---
-        public NaveJogador(PictureBox spriteNave)
+        // ─── Propriedades ────────────────────────────────────────
+        public int Vidas => _vidas;
+        public bool EstaVivo => _vidas > 0;
+
+        // ─── Construtor ──────────────────────────────────────────
+        public NaveJogador(Form form, Image sprite, int larguraTela)
         {
-            // Atribuindo valores às propriedades herdadas de EntidadeJogo
+            _vidas = 3;
+            _velocidade = 6;
+            _larguraTela = larguraTela;
 
-            Sprite = spriteNave;
-            Velocidade = 1;
-            Vidas = 3;
-        }
-
-        public void ReceberDano()
-        {
-            Vidas--;
-
-            
-            if (Vidas <= 0)
+            PictureBox = new PictureBox
             {
-                Destruir();
-            }
+                Image = sprite,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                Size = new Size(60, 40),
+                Left = (larguraTela / 2) - 30,
+                Top = form.ClientSize.Height - 80,
+                BackColor = Color.Transparent
+            };
+
+            form.Controls.Add(PictureBox);
+            PictureBox.BringToFront();
         }
 
-        public void Destruir()
-        {
-            
-            Destruida?.Invoke();
-            Sprite.Dispose();
-        }
-
-       
-
-        public override void Mover(A)
-        {
-            
-        }
-
-
+        // ─── Movimentação ────────────────────────────────────────
         public void MoverEsquerda()
         {
-            
-            if (Sprite.Left > 0)
-            {
-                Sprite.Left -= Velocidade;
-            }
+            if (PictureBox.Left - _velocidade >= 0)
+                PictureBox.Left -= _velocidade;
         }
 
-        public void MoverDireita(int larguraTela)
+        public void MoverDireita()
         {
-            
-            if (Sprite.Right < larguraTela)
-            {
-                Sprite.Left += Velocidade;
-            }
+            if (PictureBox.Left + PictureBox.Width + _velocidade <= _larguraTela)
+                PictureBox.Left += _velocidade;
+        }
+
+        // ─── IAtira ──────────────────────────────────────────────
+        public Projetil Atirar(Image spriteProjetil)
+        {
+            int projetilX = PictureBox.Left + (PictureBox.Width / 2) - 5;
+            int projetilY = PictureBox.Top - 20;
+
+            return new Projetil(projetilX, projetilY, DirecaoProjetil.Cima, spriteProjetil);
+        }
+
+        // ─── Vida ────────────────────────────────────────────────
+        public void PerderVida()
+        {
+            _vidas--;
         }
     }
 }
