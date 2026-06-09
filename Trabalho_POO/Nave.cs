@@ -32,8 +32,7 @@ namespace Trabalho_POO
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 Size = new Size(60, 40),
                 Left = (larguraTela / 2) - 30,
-                Top = form.ClientSize.Height - 80,
-                BackColor = Color.Transparent
+                Top = form.ClientSize.Height - 80
             };
 
             form.Controls.Add(PictureBox);

@@ -61,6 +61,9 @@ namespace Trabalho_POO
         private ConfiguracaoRodada _config;
         private int _rodadaAtual;
 
+      
+
+        
         // ─── Construtor ──────────────────────────────────────────
         public Jogo(Form form, Image spriteNave, Image spriteAlien,
             Image spriteProjetilJogador, Image spriteProjetilAlien)
@@ -92,8 +95,9 @@ namespace Trabalho_POO
             _gerenciadorDeColisoes.OnAlienDestruido += msg =>
                 OnAlienDestruido?.Invoke(msg);
 
+            // Jogo.cs — dentro de GerenciadorDeColisoes.OnVidaPerdida
             _gerenciadorDeColisoes.OnVidaPerdida += msg =>
-                OnVidaPerdida?.Invoke(msg);
+                OnVidaPerdida?.Invoke(_nave.Vidas.ToString());
 
             _gerenciadorDeColisoes.OnDerrota += msg => EncerrarJogo(msg);
             // Jogo.cs — substituir OnVitoria no construtor
@@ -262,16 +266,12 @@ namespace Trabalho_POO
         // Jogo.cs — MoverAliens() corrigido
         // Jogo.cs — MoverAliens() reescrito
 
-        
+
         private void MoverAliens()
         {
             if (_aliens.Count == 0) return;
 
-            _contadorMovimentoAlien++;
-            if (_contadorMovimentoAlien < _intervaloMovimentoAlien) return;
-            _contadorMovimentoAlien = 0;
-
-            // ✅ Simula o próximo passo ANTES de mover
+            // ✅ Remove o contador — move todo tick com passo pequeno
             bool tocouBorda = false;
 
             foreach (Alien alien in _aliens)
@@ -319,6 +319,8 @@ namespace Trabalho_POO
             p.PictureBox.BringToFront();
             _projetisAliens.Add(p);
         }
+
+
 
         // ─── Encerrar ────────────────────────────────────────────
         private void EncerrarJogo(string mensagem)

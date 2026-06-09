@@ -35,7 +35,7 @@ namespace Trabalho_POO
             {
                 Image = sprite,
                 SizeMode = PictureBoxSizeMode.StretchImage,
-                Size = new Size(10, 20),
+                Size = new Size(20, 40),
                 Left = x,
                 Top = y,
                 BackColor = Color.Transparent

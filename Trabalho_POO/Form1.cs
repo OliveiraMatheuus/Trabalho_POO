@@ -33,6 +33,10 @@ namespace Trabalho_POO
         private bool _direita;
         private bool _atirar;
 
+
+        // FormJogo.cs — adicionar atributo
+        private PictureBox _fundoAnimado;
+
         // ─── Construtor ──────────────────────────────────────────
         public Form1()
         {
@@ -45,9 +49,25 @@ namespace Trabalho_POO
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            IniciarJogo();
+            CriarFundo();   // ← primeiro
+            IniciarJogo();  // ← depois
         }
-        
+
+        // FormJogo.cs — novo método
+        private void CriarFundo()
+        {
+            _fundoAnimado = new PictureBox
+            {
+                Image = Image.FromFile("fundo.gif"),
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                Size = this.ClientSize,
+                Location = new Point(0, 0)
+            };
+
+            this.Controls.Add(_fundoAnimado);
+            _fundoAnimado.SendToBack(); // ✅ fica atrás de tudo
+        }
+
         // ─── Configuração do Form ────────────────────────────────
         private void ConfigurarForm()
         {
@@ -70,8 +90,8 @@ namespace Trabalho_POO
             // Build Action = "Embedded Resource" ou "Content - Copy Always"
             _spriteNave = Image.FromFile("hh.png");
             _spriteAlien = Image.FromFile("alien-removebg-preview.png");
-            _spriteProjetilJogador = Image.FromFile("hh.png");
-            _spriteProjetilAlien = Image.FromFile("hh.png");
+            _spriteProjetilJogador = Image.FromFile("tiro_nave.png");
+            _spriteProjetilAlien = Image.FromFile("tiro_alien.png");
         }
 
         // ─── HUD (vidas e placar) ────────────────────────────────
@@ -154,12 +174,12 @@ namespace Trabalho_POO
         }
 
         // ─── Eventos do Jogo ──────────────────────────────────────
+        // FormJogo.cs — AtualizarVidas()
         private void AtualizarVidas(string mensagem)
         {
-            // Invoke garante atualização segura vindo de outra thread
             this.Invoke((Action)(() =>
             {
-                _lblVidas.Text = mensagem;
+                _lblVidas.Text = $"Vidas: {mensagem}";
                 _lblVidas.BringToFront();
             }));
         }

@@ -20,22 +20,19 @@ namespace Trabalho_POO
         public ConfiguracaoRodada()
         {
             Rodada = 1;
-            VelocidadeAlien = 2;
+            VelocidadeAlien = 3;  // era 5 — reduz pois agora move todo tick
             VelocidadeProjetil = 8;
             IntervaloDisparoAlien = 60;
-            IntervaloMovimento = 8;
+            IntervaloMovimento = 1;  // não usado mais, mas mantém por compatibilidade
         }
 
-        // ─── Avança para a próxima rodada ────────────────────────
         public void Avancar()
         {
             Rodada++;
-
-            // Aumenta progressivamente — com limite mínimo para não ficar impossível
-            VelocidadeAlien = System.Math.Min(VelocidadeAlien + 1, 8);
+            VelocidadeAlien = System.Math.Min(VelocidadeAlien + 1, 5);
             VelocidadeProjetil = System.Math.Min(VelocidadeProjetil + 2, 18);
             IntervaloDisparoAlien = System.Math.Max(IntervaloDisparoAlien - 8, 20);
-            IntervaloMovimento = System.Math.Max(IntervaloMovimento - 1, 2);
+            
         }
     }
 }
