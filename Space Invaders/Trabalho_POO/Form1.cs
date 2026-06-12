@@ -58,7 +58,7 @@ namespace Trabalho_POO
         {
             _fundoAnimado = new PictureBox
             {
-                Image = Image.FromFile("fundo.gif"),
+                Image = Properties.Resources.fundo, // Image.FromFile("fundo_animado.gif"),
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 Size = this.ClientSize,
                 Location = new Point(0, 0)
@@ -88,10 +88,10 @@ namespace Trabalho_POO
         {
             // Os arquivos devem estar em Resources/ com
             // Build Action = "Embedded Resource" ou "Content - Copy Always"
-            _spriteNave = Image.FromFile("hh.png");
-            _spriteAlien = Image.FromFile("alien-removebg-preview.png");
-            _spriteProjetilJogador = Image.FromFile("tiro_nave.png");
-            _spriteProjetilAlien = Image.FromFile("tiro_alien.png");
+            _spriteNave = Properties.Resources.Nave; // Image.FromFile("nave-removebg-preview.png");
+            _spriteAlien = Properties.Resources.alien_removebg_preview; // Image.FromFile("alien-removebg-preview.png");
+            _spriteProjetilJogador = Properties.Resources.tiro_nave; // Image.FromFile("tiro_nave.png");
+            _spriteProjetilAlien = Properties.Resources.tiro_alien; // Image.FromFile("tiro_alien.png");
         }
 
         // ─── HUD (vidas e placar) ────────────────────────────────
