@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -20,6 +21,7 @@ namespace Trabalho_POO
         private Image _spriteAlien;
         private Image _spriteProjetilJogador;
         private Image _spriteProjetilAlien;
+        private Image _spriteBarreira; // <- Declarada aqui
 
         private bool _esquerda, _direita, _atirar;
 
@@ -47,6 +49,7 @@ namespace Trabalho_POO
             _spriteAlien = Properties.Resources.alien_removebg_preview;
             _spriteProjetilJogador = Properties.Resources.tiro_nave;
             _spriteProjetilAlien = Properties.Resources.tiro_alien;
+            _spriteBarreira = Properties.Resources.space_bar; // <- Carregada aqui (o hífen vira underline)
         }
 
         private void CriarCanvas()
@@ -177,6 +180,7 @@ namespace Trabalho_POO
                 this, _canvas,
                 _spriteNave, _spriteAlien,
                 _spriteProjetilJogador, _spriteProjetilAlien,
+                _spriteBarreira, // <- Passa a barreira pro jogo aqui
                 Properties.Resources.fundo
             );
 
@@ -201,7 +205,6 @@ namespace Trabalho_POO
 
             _jogo.OnJogoEncerrado += msg =>
             {
-                // Já estamos na thread da UI via BeginInvoke — sem Invoke aninhado
                 _jogo.Dispose();
 
                 var r = MessageBox.Show(

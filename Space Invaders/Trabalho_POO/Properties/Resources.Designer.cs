@@ -61,12 +61,30 @@ namespace Trabalho_POO.Properties {
         }
         
         /// <summary>
+        ///   Consulta um recurso localizado do tipo System.IO.UnmanagedMemoryStream semelhante a System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream _01__Knuckles_Goes_Ratchet__Chunk_Lee_Mix_ {
+            get {
+                return ResourceManager.GetStream("01. Knuckles Goes Ratchet (Chunk Lee Mix)", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap alien_removebg_preview {
             get {
                 object obj = ResourceManager.GetObject("alien-removebg-preview", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.IO.UnmanagedMemoryStream semelhante a System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream big_boom_big_boom_202678 {
+            get {
+                return ResourceManager.GetStream("big_boom-big-boom-202678", resourceCulture);
             }
         }
         
@@ -86,6 +104,34 @@ namespace Trabalho_POO.Properties {
         internal static System.Drawing.Bitmap Nave {
             get {
                 object obj = ResourceManager.GetObject("Nave", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.IO.UnmanagedMemoryStream semelhante a System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream piu {
+            get {
+                return ResourceManager.GetStream("piu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.IO.UnmanagedMemoryStream semelhante a System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream piu_in {
+            get {
+                return ResourceManager.GetStream("piu_in", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap space_bar {
+            get {
+                object obj = ResourceManager.GetObject("space_bar", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

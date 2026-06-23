@@ -4,26 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-// ConfiguracaoRodada.cs
 namespace Trabalho_POO
 {
     public class ConfiguracaoRodada
     {
-        // ─── Propriedades ────────────────────────────────────────
+    
         public int Rodada { get; private set; }
         public int VelocidadeAlien { get; private set; }
         public int VelocidadeProjetil { get; private set; }
         public int IntervaloDisparoAlien { get; private set; }
         public int IntervaloMovimento { get; private set; }
 
-        // ─── Construtor ──────────────────────────────────────────
         public ConfiguracaoRodada()
         {
             Rodada = 1;
-            VelocidadeAlien = 3;  // era 5 — reduz pois agora move todo tick
+            VelocidadeAlien = 3; 
             VelocidadeProjetil = 8;
             IntervaloDisparoAlien = 60;
-            IntervaloMovimento = 1;  // não usado mais, mas mantém por compatibilidade
+            IntervaloMovimento = 1; 
         }
 
         public void Avancar()

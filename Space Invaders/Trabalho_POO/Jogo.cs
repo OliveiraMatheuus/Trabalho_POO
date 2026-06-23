@@ -18,13 +18,15 @@ namespace Trabalho_POO
         private List<Alien> _aliens = new List<Alien>();
         private List<Projetil> _projetisJogador = new List<Projetil>();
         private List<Projetil> _projetisAliens = new List<Projetil>();
+        private List<Barreira> _barreiras = new List<Barreira>(); 
 
         private GerenciadorDeColisoes _gerenciador;
         private ConfiguracaoRodada _config;
+        private GerenciadorDeAudio _audio;
 
         private Form _form;
         private PictureBox _canvas;
-        private Image _spriteNave, _spriteAlien, _spriteProjetilJogador, _spriteProjetilAlien;
+        private Image _spriteNave, _spriteAlien, _spriteProjetilJogador, _spriteProjetilAlien, _spriteBarreira;
         private Image _imagemFundo;
 
         private Thread _threadJogo;
@@ -40,13 +42,12 @@ namespace Trabalho_POO
         private int _rodadaAtual = 1;
         private PaintEventHandler _paintHandler;
         private EventHandler _gifFrameHandler;
-
-        // Guarda mensagem de encerramento para disparar FORA do Invoke
         private string _mensagemEncerramento = null;
 
         public Jogo(Form form, PictureBox canvas,
             Image spriteNave, Image spriteAlien,
             Image spriteProjetilJogador, Image spriteProjetilAlien,
+            Image spriteBarreira, 
             Image imagemFundo)
         {
             _form = form;
@@ -55,12 +56,14 @@ namespace Trabalho_POO
             _spriteAlien = spriteAlien;
             _spriteProjetilJogador = spriteProjetilJogador;
             _spriteProjetilAlien = spriteProjetilAlien;
+            _spriteBarreira = spriteBarreira; 
             _imagemFundo = imagemFundo;
 
             _config = new ConfiguracaoRodada();
             _intervaloDisparoAlien = _config.IntervaloDisparoAlien;
 
-            _gerenciador = new GerenciadorDeColisoes();
+            _audio = new GerenciadorDeAudio();
+            _gerenciador = new GerenciadorDeColisoes(_audio);
             _gerenciador.OnAlienDestruido += msg => OnAlienDestruido?.Invoke(msg);
             _gerenciador.OnVidaPerdida += msg => OnVidaPerdida?.Invoke(msg);
             _gerenciador.OnDerrota += msg => EncerrarJogo(msg);
@@ -82,6 +85,8 @@ namespace Trabalho_POO
                 };
                 ImageAnimator.Animate(_imagemFundo, _gifFrameHandler);
             }
+
+            _audio.TocarMusicaFundo();
         }
 
         public void Dispose()
@@ -97,12 +102,15 @@ namespace Trabalho_POO
             _aliens.Clear();
             _projetisJogador.Clear();
             _projetisAliens.Clear();
+            _barreiras.Clear();
+            _audio?.Dispose();
         }
 
         public void Iniciar()
         {
             _nave = new NaveJogador(_spriteNave, _canvas.Width, _canvas.Height);
             CriarAliens();
+            CriarBarreiras(); 
 
             _rodando = true;
             _jogoEncerrado = false;
@@ -111,10 +119,23 @@ namespace Trabalho_POO
             _threadJogo.Start();
         }
 
+        private void CriarBarreiras()
+        {
+            _barreiras.Clear();
+
+            int yBarreira = _canvas.Height - 150;
+            int larguraBarreira = 80; 
+            int margemLateral = 60;
+
+            _barreiras.Add(new Barreira(_spriteBarreira, margemLateral, yBarreira));
+            _barreiras.Add(new Barreira(_spriteBarreira, (_canvas.Width / 2) - (larguraBarreira / 2), yBarreira));
+            _barreiras.Add(new Barreira(_spriteBarreira, _canvas.Width - margemLateral - larguraBarreira, yBarreira));
+        }
+
         private void CriarAliens()
         {
             _aliens.Clear();
-            int linhas = 3, colunas = 9;
+            int linhas = 3 , colunas = 7;
             int largura = 35, altura = 28;
             int espacoX = 15, espacoY = 15;
             int offsetX = 40, offsetY = 60;
@@ -139,6 +160,7 @@ namespace Trabalho_POO
             _projetisAliens.Clear();
             OnRodadaAvancou?.Invoke($"Rodada {_rodadaAtual}");
             CriarAliens();
+            CriarBarreiras(); 
         }
 
         private void LoopJogo()
@@ -156,14 +178,13 @@ namespace Trabalho_POO
                         MoverProjetis();
                         MoverAliens();
                         AliensAtirar();
-                        _gerenciador.Verificar(_nave, _aliens,
+                        _gerenciador.Verificar(_nave, _aliens, _barreiras,
                             _projetisJogador, _projetisAliens, _canvas.Height);
                         _canvas.Invalidate();
                     }));
                 }
                 catch (ObjectDisposedException) { break; }
 
-                // Dispara o encerramento FORA do Invoke, na thread do jogo
                 if (_mensagemEncerramento != null)
                 {
                     string msg = _mensagemEncerramento;
@@ -191,6 +212,8 @@ namespace Trabalho_POO
             foreach (var a in _aliens) a.Desenhar(g);
             foreach (var p in _projetisJogador) p.Desenhar(g);
             foreach (var p in _projetisAliens) p.Desenhar(g);
+            foreach (var b in _barreiras) b.Desenhar(g); 
+
         }
 
         public void SetarInput(bool esquerda, bool direita, bool atirar)
@@ -210,6 +233,7 @@ namespace Trabalho_POO
                 _projetisJogador.Add(
                     _nave.Atirar(_spriteProjetilJogador, _config.VelocidadeProjetil));
                 _contadorDisparo = _intervaloDisparo;
+                _audio?.TocarTiroJogador();
             }
             if (_contadorDisparo > 0) _contadorDisparo--;
         }
@@ -247,6 +271,7 @@ namespace Trabalho_POO
             var atirador = _aliens[_random.Next(_aliens.Count)];
             _projetisAliens.Add(
                 atirador.Atirar(_spriteProjetilAlien, _config.VelocidadeProjetil));
+            _audio?.TocarTiroAlien();
         }
 
         private void EncerrarJogo(string msg)
@@ -254,7 +279,7 @@ namespace Trabalho_POO
             if (_jogoEncerrado) return;
             _jogoEncerrado = true;
             _rodando = false;
-            _mensagemEncerramento = msg; // será despachado pelo LoopJogo via BeginInvoke
+            _mensagemEncerramento = msg;
         }
 
         public void Parar()
