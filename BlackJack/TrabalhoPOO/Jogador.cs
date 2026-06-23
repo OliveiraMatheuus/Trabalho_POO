@@ -30,7 +30,6 @@ namespace TrabalhoPOO
                 if (carta.Valor == "A") quantidadeAses++;
             }
 
-            // Se estourou 21 e tem As valendo 11, transforma em 1
             while (total > 21 && quantidadeAses > 0)
             {
                 total -= 10;

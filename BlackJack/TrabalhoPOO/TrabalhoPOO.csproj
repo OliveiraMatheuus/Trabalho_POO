@@ -55,6 +55,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="GerenciadorDeAudio.cs" />
     <Compile Include="Jogador.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -92,6 +93,91 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\360_F_1941926973_bMXtWYh3XEUBKnnbkc0FhNYu9dL8B1W9.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\back_dark.png" />
+    <Content Include="Resources\back_light.png" />
+    <Content Include="Resources\clubs_10.png" />
+    <Content Include="Resources\clubs_2.png" />
+    <Content Include="Resources\clubs_3.png" />
+    <Content Include="Resources\clubs_4.png" />
+    <Content Include="Resources\clubs_5.png" />
+    <Content Include="Resources\clubs_6.png" />
+    <Content Include="Resources\clubs_7.png" />
+    <Content Include="Resources\clubs_8.png" />
+    <Content Include="Resources\clubs_9.png" />
+    <Content Include="Resources\clubs_A.png" />
+    <Content Include="Resources\clubs_J.png" />
+    <Content Include="Resources\clubs_K.png" />
+    <Content Include="Resources\clubs_Q.png" />
+    <Content Include="Resources\diamonds_10.png" />
+    <Content Include="Resources\diamonds_2.png" />
+    <Content Include="Resources\diamonds_3.png" />
+    <Content Include="Resources\diamonds_4.png" />
+    <Content Include="Resources\diamonds_5.png" />
+    <Content Include="Resources\diamonds_6.png" />
+    <Content Include="Resources\diamonds_7.png" />
+    <Content Include="Resources\diamonds_8.png" />
+    <Content Include="Resources\diamonds_9.png" />
+    <Content Include="Resources\diamonds_A.png" />
+    <Content Include="Resources\diamonds_J.png" />
+    <Content Include="Resources\diamonds_K.png" />
+    <Content Include="Resources\diamonds_Q.png" />
+    <Content Include="Resources\hearts_10.png" />
+    <Content Include="Resources\hearts_2.png" />
+    <Content Include="Resources\hearts_3.png" />
+    <Content Include="Resources\hearts_4.png" />
+    <Content Include="Resources\hearts_5.png" />
+    <Content Include="Resources\hearts_6.png" />
+    <Content Include="Resources\hearts_7.png" />
+    <Content Include="Resources\hearts_8.png" />
+    <Content Include="Resources\hearts_9.png" />
+    <Content Include="Resources\hearts_A.png" />
+    <Content Include="Resources\hearts_J.png" />
+    <Content Include="Resources\hearts_K.png" />
+    <Content Include="Resources\hearts_Q.png" />
+    <Content Include="Resources\spades_10.png" />
+    <Content Include="Resources\spades_2.png" />
+    <Content Include="Resources\spades_3.png" />
+    <Content Include="Resources\spades_4.png" />
+    <Content Include="Resources\spades_5.png" />
+    <Content Include="Resources\spades_6.png" />
+    <Content Include="Resources\spades_7.png" />
+    <Content Include="Resources\spades_8.png" />
+    <Content Include="Resources\spades_9.png" />
+    <Content Include="Resources\spades_A.png" />
+    <Content Include="Resources\spades_J.png" />
+    <Content Include="Resources\spades_K.png" />
+    <Content Include="Resources\spades_Q.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="MediaPlayer">
+      <Guid>{22D6F304-B0F6-11D0-94AB-0080C74C7E95}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="stdole">
+      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="WMPLib">
+      <Guid>{6BF52A50-394A-11D3-B153-00C04F79FAA6}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

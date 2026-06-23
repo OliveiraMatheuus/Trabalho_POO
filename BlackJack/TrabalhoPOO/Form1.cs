@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace TrabalhoPOO
@@ -11,44 +12,125 @@ namespace TrabalhoPOO
         private Banca _banca;
         private bool _jogoAtivo;
 
-        // tamanho de cada carta na tela
+        private GerenciadorDeAudio _audio;
+        private Panel _pnlMenu;
+
         private const int CARD_W = 72;
         private const int CARD_H = 100;
         private const int CARD_GAP = 8;
 
+        private readonly string _pastaResources;
+
         public Form1()
         {
             InitializeComponent();
-            IniciarJogo();
+
+            _pastaResources = Path.GetFullPath(
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "Resources"));
+
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+
+            _audio = new GerenciadorDeAudio();
+
+            CriarMenuInicial();
+        }
+
+        private void CriarMenuInicial()
+        {
+            _pnlMenu = new Panel();
+            _pnlMenu.Dock = DockStyle.Fill;
+
+            if (this.BackgroundImage != null)
+            {
+                _pnlMenu.BackgroundImage = this.BackgroundImage;
+                _pnlMenu.BackgroundImageLayout = ImageLayout.Stretch;
+            }
+            else
+            {
+                _pnlMenu.BackColor = Color.DarkGreen; 
+            }
+
+            Label lblTitulo = new Label();
+            lblTitulo.Text = "BLACKJACK 21";
+            lblTitulo.Font = new Font("Arial", 36, FontStyle.Bold);
+            lblTitulo.ForeColor = Color.White;
+            lblTitulo.BackColor = Color.Transparent; 
+            lblTitulo.AutoSize = true;
+
+            lblTitulo.Location = new Point(
+                (this.ClientSize.Width - lblTitulo.PreferredWidth) / 2, 80);
+
+            Button btnJogar = new Button();
+            btnJogar.Text = "JOGAR";
+            btnJogar.Size = new Size(200, 50);
+            btnJogar.Font = new Font("Arial", 14, FontStyle.Bold);
+            btnJogar.BackColor = Color.White;
+            btnJogar.Location = new Point((this.ClientSize.Width - 200) / 2, 210);
+
+            btnJogar.Click += (s, e) => {
+                _pnlMenu.Visible = false;
+                _audio.TocarMusicaFundo();
+                IniciarJogo();
+            };
+
+            Button btnSair = new Button();
+            btnSair.Text = "SAIR";
+            btnSair.Size = new Size(200, 50);
+            btnSair.Font = new Font("Arial", 14, FontStyle.Bold);
+            btnSair.BackColor = Color.White;
+            btnSair.Location = new Point((this.ClientSize.Width - 200) / 2, 280); 
+
+            btnSair.Click += (s, e) => {
+                Application.Exit(); 
+            };
+
+            _pnlMenu.Controls.Add(lblTitulo);
+            _pnlMenu.Controls.Add(btnJogar);
+            _pnlMenu.Controls.Add(btnSair); 
+            this.Controls.Add(_pnlMenu);
+            _pnlMenu.BringToFront();
         }
 
         private void IniciarJogo()
         {
+            
+            _audio.PararEfeitos();
+
             _baralho = new Baralho();
             _jogador = new Jogador();
             _banca = new Banca();
             _jogoAtivo = true;
 
-            // cada um começa com 2 cartas
+            _audio.TocarCarta();
+
             _jogador.ReceberCarta(_baralho.ComprarCarta());
             _jogador.ReceberCarta(_baralho.ComprarCarta());
             _banca.ReceberCarta(_baralho.ComprarCarta());
             _banca.ReceberCarta(_baralho.ComprarCarta());
 
             lblResultado.Text = "";
-            btnComprar.Enabled = true;
-            btnParar.Enabled = true;
+            UpdateControlesInterface(true);
 
             AtualizarTela();
+        }
+
+        private void UpdateControlesInterface(bool jogoAtivo)
+        {
+            btnComprar.Enabled = jogoAtivo;
+            btnParar.Enabled = jogoAtivo;
+        }
+
+        private void PatternMuteEfeitosAnteriores()
+        {
+            _audio.PararEfeitos();
         }
 
         private void AtualizarTela(bool revelarBanca = false)
         {
             DesenharCartas(pnlJogador, _jogador.Mao, revelar: true);
-
             DesenharCartas(pnlBanca, _banca.Mao, revelar: revelarBanca);
 
-            // atualiza pontuações
             lblPontosJogador.Text = $"Jogador: {_jogador.CalcularPontos()} pts";
 
             if (revelarBanca)
@@ -72,9 +154,32 @@ namespace TrabalhoPOO
                 bool mostrar = revelar || (painel == pnlBanca && i == 0);
 
                 if (mostrar)
-                    pb.Image = Image.FromFile(mao[i].Path);
+                {
+                    string nomeArquivo = Path.GetFileName(mao[i].Path);
+                    string caminhoCompleto = Path.Combine(_pastaResources, nomeArquivo);
+
+                    if (!File.Exists(caminhoCompleto))
+                    {
+                        caminhoCompleto = Path.Combine(_pastaResources, mao[i].Path);
+                    }
+
+                    if (File.Exists(caminhoCompleto))
+                    {
+                        pb.Image = Image.FromFile(caminhoCompleto);
+                    }
+                    else
+                    {
+                        pb.BackColor = Color.White;
+                    }
+                }
                 else
-                    pb.BackColor = Color.DarkBlue; // carta virada para baixo
+                {
+                    string caminhoVerso = Path.Combine(_pastaResources, "back_dark.png");
+                    if (File.Exists(caminhoVerso))
+                        pb.Image = Image.FromFile(caminhoVerso);
+                    else
+                        pb.BackColor = Color.DarkBlue;
+                }
 
                 painel.Controls.Add(pb);
             }
@@ -83,43 +188,51 @@ namespace TrabalhoPOO
         private void EncerrarRodada()
         {
             _jogoAtivo = false;
-            btnComprar.Enabled = false;
-            btnParar.Enabled = false;
+            UpdateControlesInterface(false);
 
             int ptsJogador = _jogador.CalcularPontos();
-
             _banca.ExecutarJogada(_baralho, ptsJogador);
 
-            // revela todas as cartas da banca
             AtualizarTela(revelarBanca: true);
-
             int ptsBanca = _banca.CalcularPontos();
 
             if (ptsJogador > 21)
             {
                 lblResultado.Text = "Você estourou! Banca vence.";
                 lblResultado.ForeColor = Color.Red;
+                _audio.TocarDerrota();
             }
             else if (ptsBanca > 21)
             {
                 lblResultado.Text = "Banca estourou! Você vence!";
                 lblResultado.ForeColor = Color.LightGreen;
+                _audio.TocarVitoria();
             }
             else if (ptsJogador > ptsBanca)
             {
                 lblResultado.Text = "Você vence!";
                 lblResultado.ForeColor = Color.LightGreen;
+                _audio.TocarVitoria();
+            }
+            else if (ptsJogador == ptsBanca)
+            {
+                lblResultado.Text = "Empate! O jogo ficou igualado.";
+                lblResultado.ForeColor = Color.Yellow;
+                _audio.TocarEmpate();
             }
             else
             {
                 lblResultado.Text = "Banca vence!";
                 lblResultado.ForeColor = Color.Red;
+                _audio.TocarDerrota();
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             if (!_jogoAtivo) return;
+
+            _audio.TocarCarta();
 
             _jogador.ReceberCarta(_baralho.ComprarCarta());
             AtualizarTela();
@@ -141,7 +254,6 @@ namespace TrabalhoPOO
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
         }
     }
 }
