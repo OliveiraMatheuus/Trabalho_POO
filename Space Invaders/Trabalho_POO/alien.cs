@@ -1,105 +1,51 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace Trabalho_POO
 {
     public class Alien : EntidadeJogo, IAtira, IMovivel
     {
-        // ─── Atributos ───────────────────────────────────────────
         private int _velocidade;
-        private int _direcaoHorizontal; // +1 direita | -1 esquerda
+        private int _direcaoHorizontal;
         private int _larguraTela;
+
+        public bool Ativo { get; private set; }
         public int VelocidadeAtual => _velocidade * _direcaoHorizontal;
 
-        // ─── Propriedades ────────────────────────────────────────
-        public bool Ativo { get; private set; }
-
-        // ─── Construtor ──────────────────────────────────────────
-        // Alien.cs — construtor atualizado
-        public Alien(Form form, Image sprite, int x, int y, int larguraTela, int velocidade)
+        public Alien(Image sprite, int x, int y, int larguraTela, int velocidade)
         {
-            _velocidade = velocidade; // ← vem da ConfiguracaoRodada
+            Sprite = sprite;
+            Largura = 35;
+            Altura = 28;
+            X = x; Y = y;
+            _velocidade = velocidade;
             _direcaoHorizontal = 1;
             _larguraTela = larguraTela;
             Ativo = true;
-
-            PictureBox = new PictureBox
-            {
-                Image = sprite,
-                SizeMode = PictureBoxSizeMode.StretchImage,
-                Size = new Size(50, 40),
-                Left = x,
-                Top = y,
-                BackColor = Color.Transparent
-            };
-
-            form.Controls.Add(PictureBox);
-            PictureBox.BringToFront();
         }
 
-        // ─── IMovivel ───────────────────────────────────────────
         public void Mover()
         {
-            int novoX = PictureBox.Left + (_velocidade * _direcaoHorizontal);
-
-            // Garante que nunca ultrapasse a borda
-            if (novoX < 0)
-                novoX = 0;
-            else if (novoX + PictureBox.Width > _larguraTela)
-                novoX = _larguraTela - PictureBox.Width;
-
-            PictureBox.Left = novoX;
+            int novoX = X + (_velocidade * _direcaoHorizontal);
+            if (novoX < 0) novoX = 0;
+            else if (novoX + Largura > _larguraTela) novoX = _larguraTela - Largura;
+            X = novoX;
         }
 
-        // Chamado pelo Jogo quando o grupo todo precisa inverter
-        public void InverterDirecao()
-        {
-            _direcaoHorizontal *= -1;
-        }
+        public void InverterDirecao() { _direcaoHorizontal *= -1; }
+        public void Descer(int pixels) { Y += pixels; }
 
-        // Chamado pelo Jogo para descer uma linha ao inverter
-        public void Descer(int pixels)
-        {
-            PictureBox.Top += pixels;
-        }
-
-        // ─── IAtira ──────────────────────────────────────────────
-        // Alien.cs — Atirar atualizado
         public Projetil Atirar(Image spriteProjetil, int velocidade)
         {
-            int projetilX = PictureBox.Left + (PictureBox.Width / 2) - 5;
-            int projetilY = PictureBox.Bottom + 5;
-
-            return new Projetil(projetilX, projetilY, DirecaoProjetil.Baixo, spriteProjetil, velocidade);
+            return new Projetil(X + Largura / 2 - 5, Y + Altura + 5,
+                DirecaoProjetil.Baixo, spriteProjetil, velocidade);
         }
 
-        // ─── Destruição ──────────────────────────────────────────
-        public void Destruir(Form form)
-        {
-            Ativo = false;
-            Remover(form);
-        }
+        public void Destruir() { Ativo = false; }
 
-        // ─── Alcançou a borda inferior? ──────────────────────────
-        public bool AlcancouBordaInferior(int alturaTela)
-        {
-            return PictureBox.Bottom >= alturaTela;
-        }
-
-        // ─── Alcançou as bordas laterais? ────────────────────────
-        public bool AlcancouBordaDireita()
-        {
-            return PictureBox.Right >= _larguraTela;
-        }
-
-        public bool AlcancouBordaEsquerda()
-        {
-            return PictureBox.Left <= 0;
-        }
+        public bool AlcancouBordaInferior(int alturaTela) => Y + Altura >= alturaTela;
+        public bool AlcancouBordaDireita() => X + Largura >= _larguraTela;
+        public bool AlcancouBordaEsquerda() => X <= 0;
     }
 }

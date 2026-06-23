@@ -1,32 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Trabalho_POO
 {
     public class GerenciadorDeColisoes
     {
-        // ─── Delegates e Eventos ─────────────────────────────────
         public delegate void ColisaoHandler(string mensagem);
-
         public event ColisaoHandler OnAlienDestruido;
         public event ColisaoHandler OnVidaPerdida;
         public event ColisaoHandler OnDerrota;
         public event ColisaoHandler OnVitoria;
 
-        // ─── Atributos ───────────────────────────────────────────
-        private Form _form;
-
-        // ─── Construtor ──────────────────────────────────────────
-        public GerenciadorDeColisoes(Form form)
-        {
-            _form = form;
-        }
-
-        // ─── Verificação principal ───────────────────────────────
         public void Verificar(
             NaveJogador nave,
             List<Alien> aliens,
@@ -34,105 +18,64 @@ namespace Trabalho_POO
             List<Projetil> projetisAliens,
             int alturaTela)
         {
-            VerificarProjetisJogadorXAliens(nave, aliens, projetisJogador);
+            VerificarProjetisJogadorXAliens(aliens, projetisJogador);
             VerificarProjetisAliensXNave(nave, projetisAliens, alturaTela);
             VerificarAliensNaBordaInferior(aliens, alturaTela);
             VerificarVitoria(aliens);
         }
 
-        // ─── Projétil do jogador × Aliens ────────────────────────
         private void VerificarProjetisJogadorXAliens(
-            NaveJogador nave,
-            List<Alien> aliens,
-            List<Projetil> projetisJogador)
+            List<Alien> aliens, List<Projetil> projetisJogador)
         {
-            List<Projetil> projetisParaRemover = new List<Projetil>();
-            List<Alien> aliensParaRemover = new List<Alien>();
+            var projetisRemover = new List<Projetil>();
+            var aliensRemover = new List<Alien>();
 
-            foreach (Projetil projetil in projetisJogador)
-            {
-                foreach (Alien alien in aliens)
-                {
-                    if (projetil.Bounds.IntersectsWith(alien.Bounds))
+            foreach (var p in projetisJogador)
+                foreach (var a in aliens)
+                    if (p.Bounds.IntersectsWith(a.Bounds))
                     {
-                        projetisParaRemover.Add(projetil);
-                        aliensParaRemover.Add(alien);
+                        projetisRemover.Add(p);
+                        aliensRemover.Add(a);
                         OnAlienDestruido?.Invoke("Alien destruído!");
                     }
-                }
-            }
 
-            // Remove depois de iterar — nunca modifique a lista dentro do foreach
-            foreach (Projetil projetil in projetisParaRemover)
-            {
-                projetil.Remover(_form);
-                projetisJogador.Remove(projetil);
-            }
-
-            foreach (Alien alien in aliensParaRemover)
-            {
-                alien.Destruir(_form);
-                aliens.Remove(alien);
-            }
+            foreach (var p in projetisRemover) projetisJogador.Remove(p);
+            foreach (var a in aliensRemover) { a.Destruir(); aliens.Remove(a); }
         }
 
-        // ─── Projétil dos aliens × Nave ──────────────────────────
         private void VerificarProjetisAliensXNave(
-            NaveJogador nave,
-            List<Projetil> projetisAliens,
-            int alturaTela)
+            NaveJogador nave, List<Projetil> projetisAliens, int alturaTela)
         {
-            List<Projetil> projetisParaRemover = new List<Projetil>();
+            var remover = new List<Projetil>();
 
-            foreach (Projetil projetil in projetisAliens)
+            foreach (var p in projetisAliens)
             {
-                // Saiu da tela — remove sem punir o jogador
-                if (projetil.ForaDaTela(alturaTela))
+                if (p.ForaDaTela(alturaTela)) { remover.Add(p); continue; }
+                if (p.Bounds.IntersectsWith(nave.Bounds))
                 {
-                    projetisParaRemover.Add(projetil);
-                    continue;
-                }
-
-                // Acertou a nave
-                if (projetil.Bounds.IntersectsWith(nave.Bounds))
-                {
-                    projetisParaRemover.Add(projetil);
+                    remover.Add(p);
                     nave.PerderVida();
-
-                    if (!nave.EstaVivo)
-                        OnDerrota?.Invoke("Game Over! Suas vidas acabaram.");
-                    else
-                        OnVidaPerdida?.Invoke($"Vida perdida! Vidas restantes: {nave.Vidas}");
+                    if (!nave.EstaVivo) OnDerrota?.Invoke("Game Over! Suas vidas acabaram.");
+                    else OnVidaPerdida?.Invoke(nave.Vidas.ToString());
                 }
             }
 
-            foreach (Projetil projetil in projetisParaRemover)
-            {
-                projetil.Remover(_form);
-                projetisAliens.Remove(projetil);
-            }
+            foreach (var p in remover) projetisAliens.Remove(p);
         }
 
-        // ─── Alien alcançou a borda inferior ─────────────────────
-        private void VerificarAliensNaBordaInferior(
-            List<Alien> aliens,
-            int alturaTela)
+        private void VerificarAliensNaBordaInferior(List<Alien> aliens, int alturaTela)
         {
-            foreach (Alien alien in aliens)
-            {
-                if (alien.AlcancouBordaInferior(alturaTela))
+            foreach (var a in aliens)
+                if (a.AlcancouBordaInferior(alturaTela))
                 {
                     OnDerrota?.Invoke("Game Over! Os aliens chegaram até você!");
                     return;
                 }
-            }
         }
 
-        // ─── Todos os aliens destruídos = vitória ─────────────────
         private void VerificarVitoria(List<Alien> aliens)
         {
-            if (aliens.Count == 0)
-                OnVitoria?.Invoke("Você venceu! Todos os aliens foram destruídos!");
+            if (aliens.Count == 0) OnVitoria?.Invoke("Vitória!");
         }
     }
 }

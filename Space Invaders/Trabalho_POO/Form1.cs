@@ -1,100 +1,66 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-
 
 namespace Trabalho_POO
 {
     public partial class Form1 : Form
     {
-        // ─── Atributos ───────────────────────────────────────────
         private Jogo _jogo;
+        private PictureBox _canvas;
+        private Panel _menuPanel;
+
         private Label _lblVidas;
         private Label _lblPlacar;
-        private int _placar;
-        // FormJogo.cs — adicionar label de rodada
         private Label _lblRodada;
+        private int _placar;
 
-        // ─── Sprites ─────────────────────────────────────────────
         private Image _spriteNave;
         private Image _spriteAlien;
         private Image _spriteProjetilJogador;
         private Image _spriteProjetilAlien;
 
-        // ─── Controle de teclas ───────────────────────────────────
-        private bool _esquerda;
-        private bool _direita;
-        private bool _atirar;
+        private bool _esquerda, _direita, _atirar;
 
-
-        // FormJogo.cs — adicionar atributo
-        private PictureBox _fundoAnimado;
-
-        // ─── Construtor ──────────────────────────────────────────
         public Form1()
         {
             InitializeComponent();
-            ConfigurarForm();
-            CarregarSprites();
-            CriarHUD();
-        }
-
-        protected override void OnLoad(EventArgs e)
-        {
-            base.OnLoad(e);
-            CriarFundo();   // ← primeiro
-            IniciarJogo();  // ← depois
-        }
-
-        // FormJogo.cs — novo método
-        private void CriarFundo()
-        {
-            _fundoAnimado = new PictureBox
-            {
-                Image = Properties.Resources.fundo, // Image.FromFile("fundo_animado.gif"),
-                SizeMode = PictureBoxSizeMode.StretchImage,
-                Size = this.ClientSize,
-                Location = new Point(0, 0)
-            };
-
-            this.Controls.Add(_fundoAnimado);
-            _fundoAnimado.SendToBack(); // ✅ fica atrás de tudo
-        }
-
-        // ─── Configuração do Form ────────────────────────────────
-        private void ConfigurarForm()
-        {
             this.Text = "Space Invaders";
             this.ClientSize = new Size(600, 700);
             this.BackColor = Color.Black;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-            this.KeyPreview = true; // Form recebe teclas antes dos controles
-
-            // Eventos de teclado
+            this.KeyPreview = true;
             this.KeyDown += FormJogo_KeyDown;
             this.KeyUp += FormJogo_KeyUp;
+
+            CarregarSprites();
+            CriarCanvas();
+            CriarHUD();
+            MostrarMenu();
         }
 
-        // ─── Carregamento das sprites ─────────────────────────────
         private void CarregarSprites()
         {
-            // Os arquivos devem estar em Resources/ com
-            // Build Action = "Embedded Resource" ou "Content - Copy Always"
-            _spriteNave = Properties.Resources.Nave; // Image.FromFile("nave-removebg-preview.png");
-            _spriteAlien = Properties.Resources.alien_removebg_preview; // Image.FromFile("alien-removebg-preview.png");
-            _spriteProjetilJogador = Properties.Resources.tiro_nave; // Image.FromFile("tiro_nave.png");
-            _spriteProjetilAlien = Properties.Resources.tiro_alien; // Image.FromFile("tiro_alien.png");
+            _spriteNave = Properties.Resources.Nave;
+            _spriteAlien = Properties.Resources.alien_removebg_preview;
+            _spriteProjetilJogador = Properties.Resources.tiro_nave;
+            _spriteProjetilAlien = Properties.Resources.tiro_alien;
         }
 
-        // ─── HUD (vidas e placar) ────────────────────────────────
+        private void CriarCanvas()
+        {
+            _canvas = new PictureBox
+            {
+                Size = this.ClientSize,
+                Location = new Point(0, 0),
+                BackColor = Color.Black
+            };
+            this.Controls.Add(_canvas);
+            _canvas.SendToBack();
+        }
+
         private void CriarHUD()
         {
             _lblVidas = new Label
@@ -104,138 +70,166 @@ namespace Trabalho_POO
                 BackColor = Color.Transparent,
                 Font = new Font("Arial", 14, FontStyle.Bold),
                 Location = new Point(10, 10),
-                AutoSize = true
+                AutoSize = true,
+                Visible = false
             };
-
             _lblPlacar = new Label
             {
                 Text = "Placar: 0",
                 ForeColor = Color.Yellow,
                 BackColor = Color.Transparent,
                 Font = new Font("Arial", 14, FontStyle.Bold),
-                AutoSize = true
+                Location = new Point(this.ClientSize.Width - 150, 10),
+                AutoSize = true,
+                Visible = false
             };
-
-            // FormJogo.cs — CriarHUD() adicionar
             _lblRodada = new Label
             {
                 Text = "Rodada: 1",
                 ForeColor = Color.Cyan,
                 BackColor = Color.Transparent,
                 Font = new Font("Arial", 14, FontStyle.Bold),
-                Location = new Point(this.ClientSize.Width / 2 - 50, 10),
-                AutoSize = true
+                Location = new Point(this.ClientSize.Width / 2 - 55, 10),
+                AutoSize = true,
+                Visible = false
             };
-
-            this.Controls.Add(_lblRodada);
-            _lblRodada.BringToFront();
-
-            // Alinha o placar à direita
-            _lblPlacar.Location = new Point(
-                this.ClientSize.Width - 150, 10
-            );
-
             this.Controls.Add(_lblVidas);
             this.Controls.Add(_lblPlacar);
-            _lblVidas.BringToFront();
-            _lblPlacar.BringToFront();
-        }
-        // FormJogo.cs — novo método
-        private void AtualizarRodada(string mensagem)
-        {
-            this.Invoke((Action)(() =>
-            {
-                _lblRodada.Text = mensagem;
-                _lblRodada.BringToFront();
-            }));
+            this.Controls.Add(_lblRodada);
         }
 
-        // ─── Iniciar jogo ─────────────────────────────────────────
+        private void MostrarMenu()
+        {
+            _menuPanel = new Panel
+            {
+                Size = this.ClientSize,
+                Location = new Point(0, 0),
+                BackColor = Color.Transparent
+            };
+
+            var titulo = new Label
+            {
+                Text = "SPACE INVADERS",
+                ForeColor = Color.Lime,
+                BackColor = Color.Transparent,
+                Font = new Font("Courier New", 26, FontStyle.Bold),
+                AutoSize = true
+            };
+            titulo.Location = new Point(
+                (this.ClientSize.Width - titulo.PreferredWidth) / 2, 240);
+
+            var btnJogar = new Button
+            {
+                Text = "JOGAR",
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(40, 40, 100),
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Courier New", 13, FontStyle.Bold),
+                Size = new Size(180, 50)
+            };
+            btnJogar.FlatAppearance.BorderColor = Color.Cyan;
+            btnJogar.Location = new Point((this.ClientSize.Width - 180) / 2, 340);
+            btnJogar.Click += (s, ev) => IniciarJogo();
+
+            var btnSair = new Button
+            {
+                Text = "SAIR",
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(100, 20, 20),
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Courier New", 13, FontStyle.Bold),
+                Size = new Size(180, 50)
+            };
+            btnSair.FlatAppearance.BorderColor = Color.Red;
+            btnSair.Location = new Point((this.ClientSize.Width - 180) / 2, 410);
+            btnSair.Click += (s, ev) => this.Close();
+
+            _menuPanel.Controls.Add(titulo);
+            _menuPanel.Controls.Add(btnJogar);
+            _menuPanel.Controls.Add(btnSair);
+
+            this.Controls.Add(_menuPanel);
+            _menuPanel.BringToFront();
+        }
+
         private void IniciarJogo()
         {
+            if (_menuPanel != null)
+            {
+                _menuPanel.Visible = false;
+                this.Controls.Remove(_menuPanel);
+                _menuPanel.Dispose();
+                _menuPanel = null;
+            }
+
             _placar = 0;
+            _lblVidas.Text = "Vidas: 3";
+            _lblPlacar.Text = "Placar: 0";
+            _lblRodada.Text = "Rodada: 1";
+            _lblVidas.Visible = true;
+            _lblPlacar.Visible = true;
+            _lblRodada.Visible = true;
+            _lblVidas.BringToFront();
+            _lblPlacar.BringToFront();
+            _lblRodada.BringToFront();
 
             _jogo = new Jogo(
-                this,
-                _spriteNave,
-                _spriteAlien,
-                _spriteProjetilJogador,
-                _spriteProjetilAlien
+                this, _canvas,
+                _spriteNave, _spriteAlien,
+                _spriteProjetilJogador, _spriteProjetilAlien,
+                Properties.Resources.fundo
             );
 
-            // Inscreve nos eventos do Jogo
-            _jogo.OnVidaPerdida += AtualizarVidas;
-            _jogo.OnAlienDestruido += AtualizarPlacar;
-            _jogo.OnJogoEncerrado += MostrarResultado;
-            // FormJogo.cs — inscrever no novo evento dentro de IniciarJogo()
-            _jogo.OnRodadaAvancou += AtualizarRodada;
-
-            _jogo.Iniciar();
-        }
-
-        // ─── Eventos do Jogo ──────────────────────────────────────
-        // FormJogo.cs — AtualizarVidas()
-        private void AtualizarVidas(string mensagem)
-        {
-            this.Invoke((Action)(() =>
+            _jogo.OnVidaPerdida += msg =>
             {
-                _lblVidas.Text = $"Vidas: {mensagem}";
+                _lblVidas.Text = $"Vidas: {msg}";
                 _lblVidas.BringToFront();
-            }));
-        }
+            };
 
-        private void AtualizarPlacar(string mensagem)
-        {
-            this.Invoke((Action)(() =>
+            _jogo.OnAlienDestruido += msg =>
             {
                 _placar += 100;
                 _lblPlacar.Text = $"Placar: {_placar}";
                 _lblPlacar.BringToFront();
-            }));
-        }
+            };
 
-        private void MostrarResultado(string mensagem)
-        {
-            this.Invoke((Action)(() =>
+            _jogo.OnRodadaAvancou += msg =>
             {
-                _jogo.Parar();
+                _lblRodada.Text = msg;
+                _lblRodada.BringToFront();
+            };
 
-                DialogResult resultado = MessageBox.Show(
-                    $"{mensagem}\nPlacar final: {_placar}\n\nDeseja jogar novamente?",
-                    "Fim de Jogo",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Information
-                );
+            _jogo.OnJogoEncerrado += msg =>
+            {
+                // Já estamos na thread da UI via BeginInvoke — sem Invoke aninhado
+                _jogo.Dispose();
 
-                if (resultado == DialogResult.Yes)
-                    ReiniciarJogo();
+                var r = MessageBox.Show(
+                    $"{msg}\nPlacar: {_placar}\n\nJogar novamente?",
+                    "Fim de Jogo", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+
+                if (r == DialogResult.Yes)
+                {
+                    _lblVidas.Visible = false;
+                    _lblPlacar.Visible = false;
+                    _lblRodada.Visible = false;
+                    MostrarMenu();
+                }
                 else
+                {
                     this.Close();
-            }));
+                }
+            };
+
+            _jogo.Iniciar();
         }
 
-        // ─── Reiniciar ───────────────────────────────────────────
-        private void ReiniciarJogo()
-        {
-            // Remove todos os controles exceto os labels do HUD
-            for (int i = this.Controls.Count - 1; i >= 0; i--)
-            {
-                Control c = this.Controls[i];
-                if (c != _lblVidas && c != _lblPlacar)
-                    this.Controls.RemoveAt(i);
-            }
-
-            IniciarJogo();
-        }
-
-        // ─── Input do teclado ─────────────────────────────────────
         private void FormJogo_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A) _esquerda = true;
             if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D) _direita = true;
             if (e.KeyCode == Keys.Space) _atirar = true;
-
-            _jogo.SetarInput(_esquerda, _direita, _atirar);
+            _jogo?.SetarInput(_esquerda, _direita, _atirar);
         }
 
         private void FormJogo_KeyUp(object sender, KeyEventArgs e)
@@ -243,14 +237,13 @@ namespace Trabalho_POO
             if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A) _esquerda = false;
             if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D) _direita = false;
             if (e.KeyCode == Keys.Space) _atirar = false;
-
-            _jogo.SetarInput(_esquerda, _direita, _atirar);
+            _jogo?.SetarInput(_esquerda, _direita, _atirar);
         }
 
-        // ─── Fechar com segurança ────────────────────────────────
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _jogo?.Parar();
+            _jogo?.Dispose();
             Thread.Sleep(50);
             base.OnFormClosing(e);
         }

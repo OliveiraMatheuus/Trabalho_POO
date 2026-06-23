@@ -1,40 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-
 
 namespace Trabalho_POO
 {
-    // ─── Interfaces ──────────────────────────────────────────────
-
-    public interface IMovivel
-    {
-        void Mover();
-    }
-
-    // EntidadeJogo.cs — IAtira atualizada
-    public interface IAtira
-    {
-        Projetil Atirar(Image spriteProjetil, int velocidade);
-    }
-    // ─── Classe Abstrata ─────────────────────────────────────────
+    public interface IMovivel { void Mover(); }
+    public interface IAtira { Projetil Atirar(Image spriteProjetil, int velocidade); }
 
     public abstract class EntidadeJogo
     {
-        public PictureBox PictureBox { get; protected set; }
+        public int X { get; protected set; }
+        public int Y { get; protected set; }
+        public int Largura { get; protected set; }
+        public int Altura { get; protected set; }
+        public Image Sprite { get; protected set; }
+        public Rectangle Bounds => new Rectangle(X, Y, Largura, Altura);
 
-        public Rectangle Bounds => PictureBox.Bounds;
-        public int X => PictureBox.Left;
-        public int Y => PictureBox.Top;
-
-        public virtual void Remover(Form form)
+        public virtual void Desenhar(Graphics g)
         {
-            form.Controls.Remove(PictureBox);
-            PictureBox.Dispose();
+            if (Sprite != null)
+                g.DrawImage(Sprite, X, Y, Largura, Altura);
         }
     }
 }

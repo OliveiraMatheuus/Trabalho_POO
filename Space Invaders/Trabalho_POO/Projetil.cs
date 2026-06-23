@@ -1,60 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
-using System.Windows.Forms;
 
 namespace Trabalho_POO
 {
-    // ─── Enum de direção ─────────────────────────────────────────
-    public enum DirecaoProjetil
-    {
-        Cima,   // projétil do jogador
-        Baixo   // projétil dos aliens
-    }
+    public enum DirecaoProjetil { Cima, Baixo }
 
     public class Projetil : EntidadeJogo, IMovivel
     {
-        // ─── Atributos ───────────────────────────────────────────
         private int _velocidade;
         private DirecaoProjetil _direcao;
 
-        // ─── Propriedade ─────────────────────────────────────────
-        public DirecaoProjetil Direcao => _direcao;
-
-        // ─── Construtor ──────────────────────────────────────────
-        // Projetil.cs — construtor atualizado
         public Projetil(int x, int y, DirecaoProjetil direcao, Image sprite, int velocidade)
         {
-            _velocidade = velocidade; // ← vem da ConfiguracaoRodada
+            X = x; Y = y;
+            Largura = 10; Altura = 30;
+            Sprite = sprite;
+            _velocidade = velocidade;
             _direcao = direcao;
-
-            PictureBox = new PictureBox
-            {
-                Image = sprite,
-                SizeMode = PictureBoxSizeMode.StretchImage,
-                Size = new Size(20, 40),
-                Left = x,
-                Top = y,
-                BackColor = Color.Transparent
-            };
         }
 
-        // ─── IMovivel ────────────────────────────────────────────
         public void Mover()
         {
-            if (_direcao == DirecaoProjetil.Cima)
-                PictureBox.Top -= _velocidade;
-            else
-                PictureBox.Top += _velocidade;
+            if (_direcao == DirecaoProjetil.Cima) Y -= _velocidade;
+            else Y += _velocidade;
         }
 
-        // ─── Saiu da tela? ───────────────────────────────────────
-        public bool ForaDaTela(int alturaTela)
-        {
-            return PictureBox.Bottom < 0 || PictureBox.Top > alturaTela;
-        }
+        public bool ForaDaTela(int alturaTela) => Y + Altura < 0 || Y > alturaTela;
     }
 }
