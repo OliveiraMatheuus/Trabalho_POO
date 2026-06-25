@@ -139,7 +139,7 @@ namespace TrabalhoPOO
                 lblPontosBanca.Text = "Banca: ?";
         }
 
-        private void DesenharCartas(Panel painel, System.Collections.Generic.List<Carta> mao, bool revelar)
+        private void DesenharCartas(Panel painel, System.Collections.Generic.IReadOnlyList<Carta> mao, bool revelar)
         {
             painel.Controls.Clear();
 
@@ -191,7 +191,7 @@ namespace TrabalhoPOO
             UpdateControlesInterface(false);
 
             int ptsJogador = _jogador.CalcularPontos();
-            _banca.ExecutarJogada(_baralho, ptsJogador);
+            _banca.ExecutarJogada(_baralho);
 
             AtualizarTela(revelarBanca: true);
             int ptsBanca = _banca.CalcularPontos();

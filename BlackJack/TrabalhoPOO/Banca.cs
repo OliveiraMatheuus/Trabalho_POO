@@ -4,18 +4,14 @@ namespace TrabalhoPOO
 {
     internal class Banca : Jogador
     {
-        public void ExecutarJogada(Baralho baralho, int pontosDoJogador)
+        // Regra oficial: banca compra até atingir 17 ou mais, independente do jogador.
+        public void ExecutarJogada(Baralho baralho)
         {
-            
-            if (pontosDoJogador > 21) return;
-
-            while (CalcularPontos() <= 21)
+            while (CalcularPontos() < 17)
             {
-                int pontos = CalcularPontos();
-
-                if (pontos >= 17 && pontos >= pontosDoJogador) break;
-
-                ReceberCarta(baralho.ComprarCarta());
+                Carta carta = baralho.ComprarCarta();
+                if (carta == null) break;
+                ReceberCarta(carta);
             }
         }
     }

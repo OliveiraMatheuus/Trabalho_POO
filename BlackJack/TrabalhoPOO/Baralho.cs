@@ -5,21 +5,25 @@ namespace TrabalhoPOO
 {
     internal class Baralho
     {
+        private static readonly Random _rnd = new Random();
+
         public List<Carta> Cartas { get; private set; }
 
-        public Baralho()
+        public Baralho(int quantidadeDeBaralhos = 1)
         {
+            if (quantidadeDeBaralhos < 1)
+                throw new ArgumentException("É necessário ao menos um baralho.");
+
             Cartas = new List<Carta>();
 
-            string[] naipes = { "Paus", "Copas", "Espadas", "Ouros" };
-            string[] valores = { "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K" };
-
-            foreach (string naipe in naipes)
+            for (int i = 0; i < quantidadeDeBaralhos; i++)
             {
-                foreach (string valor in valores)
+                foreach (string naipe in Carta.NaipesValidos)
                 {
-                    Carta novaCarta = new Carta(valor, naipe);
-                    Cartas.Add(novaCarta);
+                    foreach (string valor in Carta.ValoresValidos)
+                    {
+                        Cartas.Add(new Carta(valor, naipe));
+                    }
                 }
             }
 
@@ -28,29 +32,28 @@ namespace TrabalhoPOO
 
         public void Embaralhar()
         {
-            Random rnd = new Random();
             int n = Cartas.Count;
 
             while (n > 1)
             {
                 n--;
-                int k = rnd.Next(n + 1);
-                Carta value = Cartas[k];
+                int k = _rnd.Next(n + 1);
+                Carta temp = Cartas[k];
                 Cartas[k] = Cartas[n];
-                Cartas[n] = value;
+                Cartas[n] = temp;
             }
         }
 
         public Carta ComprarCarta()
         {
-            if (Cartas.Count > 0)
-            {
-                Carta cartaPuxada = Cartas[0];
-                Cartas.RemoveAt(0);
-                return cartaPuxada;
-            }
+            if (Cartas.Count == 0)
+                return null;
 
-            return null;
+            Carta cartaPuxada = Cartas[0];
+            Cartas.RemoveAt(0);
+            return cartaPuxada;
         }
+
+        public int CartasRestantes => Cartas.Count;
     }
 }
