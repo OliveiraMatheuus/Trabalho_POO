@@ -6,7 +6,6 @@ namespace TrabalhoPOO
     internal class Jogador
     {
         private readonly List<Carta> _mao = new List<Carta>();
-
         public IReadOnlyList<Carta> Mao => _mao;
 
         public int Saldo { get; private set; }
@@ -36,7 +35,8 @@ namespace TrabalhoPOO
             foreach (Carta carta in _mao)
             {
                 total += carta.Peso;
-                if (carta.Valor == "A") quantidadeAses++;
+                // CORREÇÃO: Comparar com o Enum ValorCarta.As
+                if (carta.Valor == ValorCarta.As) quantidadeAses++;
             }
 
             while (total > 21 && quantidadeAses > 0)
@@ -49,26 +49,8 @@ namespace TrabalhoPOO
         }
 
         public bool TemBlackjack() => _mao.Count == 2 && CalcularPontos() == 21;
-
         public bool Estourou() => CalcularPontos() > 21;
 
-        public void FazerAposta(int valor)
-        {
-            if (valor <= 0) throw new ArgumentException("Aposta deve ser positiva.");
-            if (valor > Saldo) throw new InvalidOperationException("Saldo insuficiente.");
-            ApostaAtual = valor;
-            Saldo -= valor;
-        }
-
-        public void ReceberPremio(int valor)
-        {
-            if (valor > 0) Saldo += valor;
-        }
-
-        public void DevolverAposta()
-        {
-            Saldo += ApostaAtual;
-            ApostaAtual = 0;
-        }
+       
     }
 }

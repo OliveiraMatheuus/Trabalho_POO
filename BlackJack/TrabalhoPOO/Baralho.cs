@@ -6,7 +6,6 @@ namespace TrabalhoPOO
     internal class Baralho
     {
         private static readonly Random _rnd = new Random();
-
         public List<Carta> Cartas { get; private set; }
 
         public Baralho(int quantidadeDeBaralhos = 1)
@@ -18,9 +17,10 @@ namespace TrabalhoPOO
 
             for (int i = 0; i < quantidadeDeBaralhos; i++)
             {
-                foreach (string naipe in Carta.NaipesValidos)
+                // Iterar sobre os novos Enums
+                foreach (Naipe naipe in Enum.GetValues(typeof(Naipe)))
                 {
-                    foreach (string valor in Carta.ValoresValidos)
+                    foreach (ValorCarta valor in Enum.GetValues(typeof(ValorCarta)))
                     {
                         Cartas.Add(new Carta(valor, naipe));
                     }
@@ -33,7 +33,6 @@ namespace TrabalhoPOO
         public void Embaralhar()
         {
             int n = Cartas.Count;
-
             while (n > 1)
             {
                 n--;
@@ -46,8 +45,7 @@ namespace TrabalhoPOO
 
         public Carta ComprarCarta()
         {
-            if (Cartas.Count == 0)
-                return null;
+            if (Cartas.Count == 0) return null;
 
             Carta cartaPuxada = Cartas[0];
             Cartas.RemoveAt(0);

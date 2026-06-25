@@ -1,108 +1,58 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace TrabalhoPOO
 {
     internal class Carta
     {
-        private static readonly Random _rnd = new Random();
+        public ValorCarta Valor { get; private set; }
+        public Naipe NaipeCarta { get; private set; }
+        public int Peso { get; private set; }
+        public string Path { get; private set; }
 
-        private string valor;
-        private string naipe;
-        private int peso;
-        private string path;
-
-        public static readonly string[] NaipesValidos = { "Paus", "Copas", "Espadas", "Ouros" };
-        public static readonly string[] ValoresValidos = { "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K" };
-
-        public string Valor
+        public Carta(ValorCarta valor, Naipe naipe)
         {
-            get { return valor; }
-            set
-            {
-                if (ValoresValidos.Contains(value))
-                    valor = value;
-                else
-                    throw new Exception("Valor inválido!");
-            }
+            Valor = valor;
+            NaipeCarta = naipe;
+            AtribuirPeso();
+            AtribuirPath();
         }
-
-        public string Naipe
-        {
-            get { return naipe; }
-            set
-            {
-                if (NaipesValidos.Contains(value))
-                    naipe = value;
-                else
-                    throw new Exception("Naipe inválido!");
-            }
-        }
-
-        public int Peso
-        {
-            get { return peso; }
-            private set { peso = value; }
-        }
-
-        public string Path
-        {
-            get { return path; }
-            private set { path = value; }
-        }
-
-        private static readonly Dictionary<string, int> _pesoDic = new Dictionary<string, int>
-        {
-            ["A"] = 11,
-            ["2"] = 2,
-            ["3"] = 3,
-            ["4"] = 4,
-            ["5"] = 5,
-            ["6"] = 6,
-            ["7"] = 7,
-            ["8"] = 8,
-            ["9"] = 9,
-            ["10"] = 10,
-            ["J"] = 10,
-            ["Q"] = 10,
-            ["K"] = 10
-        };
-
-        private static readonly Dictionary<string, string> _naipeDic = new Dictionary<string, string>
-        {
-            ["Paus"] = "clubs",
-            ["Copas"] = "hearts",
-            ["Espadas"] = "spades",
-            ["Ouros"] = "diamonds"
-        };
 
         private void AtribuirPeso()
         {
-            Peso = _pesoDic[Valor];
+            switch (Valor)
+            {
+                case ValorCarta.As: Peso = 11; break;
+                case ValorCarta.Valete:
+                case ValorCarta.Dama:
+                case ValorCarta.Rei: Peso = 10; break;
+                default: Peso = (int)Valor + 1; break;
+            }
         }
 
         private void AtribuirPath()
         {
-            Path = "deck_1/" + _naipeDic[Naipe] + "_" + Valor + ".png";
+            string naipeStr = "";
+            switch (NaipeCarta)
+            {
+                case Naipe.Paus: naipeStr = "clubs"; break;
+                case Naipe.Copas: naipeStr = "hearts"; break;
+                case Naipe.Espadas: naipeStr = "spades"; break;
+                case Naipe.Ouros: naipeStr = "diamonds"; break;
+            }
+
+            string valorStr = "";
+            switch (Valor)
+            {
+                case ValorCarta.As: valorStr = "A"; break;
+                case ValorCarta.Valete: valorStr = "J"; break;
+                case ValorCarta.Dama: valorStr = "Q"; break;
+                case ValorCarta.Rei: valorStr = "K"; break;
+                default: valorStr = ((int)Valor + 1).ToString(); break;
+            }
+
+            Path = $"deck_1/{naipeStr}_{valorStr}.png";
         }
 
-        public Carta(string _valor, string _naipe)
-        {
-            Naipe = _naipe;
-            Valor = _valor;
-            AtribuirPeso();
-            AtribuirPath();
-        }
-
-        public Carta()
-        {
-            Naipe = NaipesValidos[_rnd.Next(0, NaipesValidos.Length)];
-            Valor = ValoresValidos[_rnd.Next(0, ValoresValidos.Length)];
-            AtribuirPeso();
-            AtribuirPath();
-        }
-
-        public override string ToString() => $"{Valor} de {Naipe}";
+        public override string ToString() => $"{Valor} de {NaipeCarta}";
     }
 }

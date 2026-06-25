@@ -49,6 +49,8 @@
     <Compile Include="Banca.cs" />
     <Compile Include="Baralho.cs" />
     <Compile Include="Carta.cs" />
+    <Compile Include="ControladorBlackjack.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
