@@ -17,7 +17,6 @@ namespace TrabalhoPOO
 
             for (int i = 0; i < quantidadeDeBaralhos; i++)
             {
-                // Iterar sobre os novos Enums
                 foreach (Naipe naipe in Enum.GetValues(typeof(Naipe)))
                 {
                     foreach (ValorCarta valor in Enum.GetValues(typeof(ValorCarta)))

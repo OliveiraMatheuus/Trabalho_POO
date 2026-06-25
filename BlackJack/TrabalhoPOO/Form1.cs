@@ -93,7 +93,6 @@ namespace TrabalhoPOO
             AtualizarTela(revelarBanca: false);
         }
 
-        // Restauro dos nomes que o Visual Studio espera
         private void button1_Click(object sender, EventArgs e)
         {
             if (_controlador == null || !_controlador.JogoAtivo) return;
@@ -211,7 +210,6 @@ namespace TrabalhoPOO
 
         private void UpdateControlesInterface(bool jogoAtivo)
         {
-            // Verifique os nomes dos seus botões; baseei-me no seu primeiro código enviado.
             if (btnComprar != null) btnComprar.Enabled = jogoAtivo;
             if (btnParar != null) btnParar.Enabled = jogoAtivo;
         }

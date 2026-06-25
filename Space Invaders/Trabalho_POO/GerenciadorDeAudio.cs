@@ -2,10 +2,11 @@
 using System.IO;
 using System.Threading;
 using WMPLib;
+using System.Windows.Forms;
 
 namespace Trabalho_POO
 {
-    public class GerenciadorDeAudio
+    public class GerenciadorDeAudio : IDisposable
     {
         private WindowsMediaPlayer _musicaFundo;
         private WindowsMediaPlayer _somTiroJogador;
@@ -17,12 +18,14 @@ namespace Trabalho_POO
 
         public GerenciadorDeAudio()
         {
-           
             _contexto = SynchronizationContext.Current ?? new SynchronizationContext();
 
-            _pastaAudio = Path.GetFullPath(
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    "..", "..", "Resources"));
+            _pastaAudio = Path.Combine(Application.StartupPath, "Resources");
+
+            if (!Directory.Exists(_pastaAudio))
+            {
+                _pastaAudio = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "Resources"));
+            }
 
             InicializarPlayers();
         }
@@ -31,12 +34,10 @@ namespace Trabalho_POO
         {
             try
             {
-              
                 _musicaFundo = CriarPlayer("01. Knuckles Goes Ratchet (Chunk Lee Mix).mp3", loop: true, volume: 4);
                 _somTiroJogador = CriarPlayer("piu.mp3", loop: false, volume: 30);
                 _somTiroAlien = CriarPlayer("piu_in.mp3", loop: false, volume: 30);
                 _somExplosao = CriarPlayer("big_boom-big-boom-202678.mp3", loop: false, volume: 1);
-
             }
             catch (Exception ex)
             {
@@ -66,7 +67,6 @@ namespace Trabalho_POO
             {
                 try
                 {
-                    
                     player.controls.stop();
                     player.controls.play();
                 }

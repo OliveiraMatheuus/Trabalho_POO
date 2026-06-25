@@ -8,14 +8,6 @@ namespace TrabalhoPOO
         private readonly List<Carta> _mao = new List<Carta>();
         public IReadOnlyList<Carta> Mao => _mao;
 
-        public int Saldo { get; private set; }
-        public int ApostaAtual { get; private set; }
-
-        public Jogador(int saldoInicial = 1000)
-        {
-            Saldo = saldoInicial;
-        }
-
         public void ReceberCarta(Carta carta)
         {
             if (carta == null) throw new ArgumentNullException(nameof(carta));
@@ -35,7 +27,6 @@ namespace TrabalhoPOO
             foreach (Carta carta in _mao)
             {
                 total += carta.Peso;
-                // CORREÇÃO: Comparar com o Enum ValorCarta.As
                 if (carta.Valor == ValorCarta.As) quantidadeAses++;
             }
 
