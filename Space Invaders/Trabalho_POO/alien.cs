@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Drawing;
-using System.Windows.Forms;
 
 namespace Trabalho_POO
 {
-    public class Alien : EntidadeJogo, IAtira, IMovivel
+    // Alien agora implementa IDestruivel explicitamente
+    public class Alien : EntidadeJogo, IAtira, IMovivel, IDestruivel
     {
         private int _velocidade;
         private int _direcaoHorizontal;

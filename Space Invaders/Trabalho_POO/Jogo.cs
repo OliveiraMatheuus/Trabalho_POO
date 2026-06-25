@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -11,14 +12,16 @@ namespace Trabalho_POO
         public delegate void EventoJogo(string mensagem);
         public event EventoJogo OnVidaPerdida;
         public event EventoJogo OnAlienDestruido;
+        public event EventoJogo OnUFODestruido;
         public event EventoJogo OnJogoEncerrado;
         public event EventoJogo OnRodadaAvancou;
 
         private NaveJogador _nave;
+        private NaveUFO _ufo;
         private List<Alien> _aliens = new List<Alien>();
         private List<Projetil> _projetisJogador = new List<Projetil>();
         private List<Projetil> _projetisAliens = new List<Projetil>();
-        private List<Barreira> _barreiras = new List<Barreira>(); 
+        private List<Barreira> _barreiras = new List<Barreira>();
 
         private GerenciadorDeColisoes _gerenciador;
         private ConfiguracaoRodada _config;
@@ -26,7 +29,8 @@ namespace Trabalho_POO
 
         private Form _form;
         private PictureBox _canvas;
-        private Image _spriteNave, _spriteAlien, _spriteProjetilJogador, _spriteProjetilAlien, _spriteBarreira;
+        private Image _spriteNave, _spriteAlien, _spriteUFO;
+        private Image _spriteProjetilJogador, _spriteProjetilAlien, _spriteBarreira;
         private Image _imagemFundo;
 
         private Thread _threadJogo;
@@ -38,25 +42,33 @@ namespace Trabalho_POO
         private int _intervaloDisparo = 20;
         private int _contadorDisparoAlien = 0;
         private int _intervaloDisparoAlien;
-        private Random _random = new Random();
+
+        private int _contadorUFO = 0;
+        private int _intervaloUFO = 600; 
+        private readonly Random _random = new Random();
+
         private int _rodadaAtual = 1;
-        private PaintEventHandler _paintHandler;
-        private EventHandler _gifFrameHandler;
         private string _mensagemEncerramento = null;
 
+        private PaintEventHandler _paintHandler;
+        private EventHandler _gifFrameHandler;
+
+        private static readonly string ArquivoRecorde =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "recorde.txt");
+
         public Jogo(Form form, PictureBox canvas,
-            Image spriteNave, Image spriteAlien,
+            Image spriteNave, Image spriteAlien, Image spriteUFO,
             Image spriteProjetilJogador, Image spriteProjetilAlien,
-            Image spriteBarreira, 
-            Image imagemFundo)
+            Image spriteBarreira, Image imagemFundo)
         {
             _form = form;
             _canvas = canvas;
             _spriteNave = spriteNave;
             _spriteAlien = spriteAlien;
+            _spriteUFO = spriteUFO;
             _spriteProjetilJogador = spriteProjetilJogador;
             _spriteProjetilAlien = spriteProjetilAlien;
-            _spriteBarreira = spriteBarreira; 
+            _spriteBarreira = spriteBarreira;
             _imagemFundo = imagemFundo;
 
             _config = new ConfiguracaoRodada();
@@ -64,7 +76,9 @@ namespace Trabalho_POO
 
             _audio = new GerenciadorDeAudio();
             _gerenciador = new GerenciadorDeColisoes(_audio);
+
             _gerenciador.OnAlienDestruido += msg => OnAlienDestruido?.Invoke(msg);
+            _gerenciador.OnUFODestruido += msg => OnUFODestruido?.Invoke(msg);
             _gerenciador.OnVidaPerdida += msg => OnVidaPerdida?.Invoke(msg);
             _gerenciador.OnDerrota += msg => EncerrarJogo(msg);
             _gerenciador.OnVitoria += msg =>
@@ -80,13 +94,33 @@ namespace Trabalho_POO
             {
                 _gifFrameHandler = (s, e) =>
                 {
-                    if (!_canvas.IsDisposed)
-                        _canvas.Invalidate();
+                    if (!_canvas.IsDisposed) _canvas.Invalidate();
                 };
                 ImageAnimator.Animate(_imagemFundo, _gifFrameHandler);
             }
 
             _audio.TocarMusicaFundo();
+            ReiniciarIntervaloUFO();
+        }
+
+
+        public void Iniciar()
+        {
+            _nave = new NaveJogador(_spriteNave, _canvas.Width, _canvas.Height);
+            CriarAliens();
+            CriarBarreiras();
+
+            _rodando = true;
+            _jogoEncerrado = false;
+
+            _threadJogo = new Thread(LoopJogo) { IsBackground = true };
+            _threadJogo.Start();
+        }
+
+        public void Parar()
+        {
+            _jogoEncerrado = true;
+            _rodando = false;
         }
 
         public void Dispose()
@@ -106,36 +140,10 @@ namespace Trabalho_POO
             _audio?.Dispose();
         }
 
-        public void Iniciar()
-        {
-            _nave = new NaveJogador(_spriteNave, _canvas.Width, _canvas.Height);
-            CriarAliens();
-            CriarBarreiras(); 
-
-            _rodando = true;
-            _jogoEncerrado = false;
-
-            _threadJogo = new Thread(LoopJogo) { IsBackground = true };
-            _threadJogo.Start();
-        }
-
-        private void CriarBarreiras()
-        {
-            _barreiras.Clear();
-
-            int yBarreira = _canvas.Height - 150;
-            int larguraBarreira = 80; 
-            int margemLateral = 60;
-
-            _barreiras.Add(new Barreira(_spriteBarreira, margemLateral, yBarreira));
-            _barreiras.Add(new Barreira(_spriteBarreira, (_canvas.Width / 2) - (larguraBarreira / 2), yBarreira));
-            _barreiras.Add(new Barreira(_spriteBarreira, _canvas.Width - margemLateral - larguraBarreira, yBarreira));
-        }
-
         private void CriarAliens()
         {
             _aliens.Clear();
-            int linhas = 3 , colunas = 7;
+            int linhas = 3, colunas = 7;
             int largura = 35, altura = 28;
             int espacoX = 15, espacoY = 15;
             int offsetX = 40, offsetY = 60;
@@ -150,17 +158,39 @@ namespace Trabalho_POO
                         _config.VelocidadeAlien));
         }
 
+        private void CriarBarreiras()
+        {
+            _barreiras.Clear();
+            int y = _canvas.Height - 150;
+            int larguraBarreira = 80;
+            int margem = 60;
+
+            _barreiras.Add(new Barreira(_spriteBarreira, margem, y));
+            _barreiras.Add(new Barreira(_spriteBarreira, (_canvas.Width / 2) - (larguraBarreira / 2), y));
+            _barreiras.Add(new Barreira(_spriteBarreira, _canvas.Width - margem - larguraBarreira, y));
+        }
+
         private void AvancarRodada()
         {
             _config.Avancar();
+
+            if (_config.JogoCompleto)
+            {
+                EncerrarJogo("Você venceu o jogo! Parabéns!");
+                return;
+            }
+
             _rodadaAtual++;
             _intervaloDisparoAlien = _config.IntervaloDisparoAlien;
             _contadorDisparoAlien = 0;
             _projetisJogador.Clear();
             _projetisAliens.Clear();
+            _ufo = null;
+            ReiniciarIntervaloUFO();
+
             OnRodadaAvancou?.Invoke($"Rodada {_rodadaAtual}");
             CriarAliens();
-            CriarBarreiras(); 
+            CriarBarreiras();
         }
 
         private void LoopJogo()
@@ -175,11 +205,15 @@ namespace Trabalho_POO
                     {
                         if (_form.IsDisposed || _jogoEncerrado) return;
                         ProcessarInput();
+                        _nave.Atualizar();          
                         MoverProjetis();
                         MoverAliens();
+                        AtualizarUFO();             
                         AliensAtirar();
-                        _gerenciador.Verificar(_nave, _aliens, _barreiras,
-                            _projetisJogador, _projetisAliens, _canvas.Height);
+                        _gerenciador.Verificar(
+                            _nave, _aliens, _barreiras,
+                            _projetisJogador, _projetisAliens,
+                            _ufo, _canvas.Height);
                         _canvas.Invalidate();
                     }));
                 }
@@ -198,6 +232,7 @@ namespace Trabalho_POO
             }
         }
 
+        
         private void Renderizar(Graphics g)
         {
             if (_imagemFundo != null)
@@ -208,14 +243,15 @@ namespace Trabalho_POO
             else
                 g.Clear(Color.Black);
 
+            _ufo?.Desenhar(g);
             _nave?.Desenhar(g);
             foreach (var a in _aliens) a.Desenhar(g);
             foreach (var p in _projetisJogador) p.Desenhar(g);
             foreach (var p in _projetisAliens) p.Desenhar(g);
-            foreach (var b in _barreiras) b.Desenhar(g); 
-
+            foreach (var b in _barreiras) b.Desenhar(g);
         }
 
+        
         public void SetarInput(bool esquerda, bool direita, bool atirar)
         {
             _moverEsquerda = esquerda;
@@ -274,6 +310,41 @@ namespace Trabalho_POO
             _audio?.TocarTiroAlien();
         }
 
+        private void ReiniciarIntervaloUFO()
+        {
+            _intervaloUFO = _random.Next(500, 1100);
+            _contadorUFO = 0;
+        }
+
+        private void AtualizarUFO()
+        {
+            if (_ufo != null && _ufo.Ativo)
+            {
+                _ufo.Mover();
+                if (_ufo.SaiuDaTela())
+                {
+                    _ufo = null;
+                    ReiniciarIntervaloUFO();
+                }
+                return;
+            }
+
+            if (_ufo != null && !_ufo.Ativo)
+            {
+                _ufo = null;
+                ReiniciarIntervaloUFO();
+                return;
+            }
+
+            if (++_contadorUFO >= _intervaloUFO)
+            {
+                bool vaiParaDireita = _random.Next(2) == 0;
+                _ufo = new NaveUFO(_spriteUFO, _canvas.Width, vaiParaDireita);
+            }
+        }
+
+       
+
         private void EncerrarJogo(string msg)
         {
             if (_jogoEncerrado) return;
@@ -282,10 +353,22 @@ namespace Trabalho_POO
             _mensagemEncerramento = msg;
         }
 
-        public void Parar()
+        /// <summary>
+        /// Lê o recorde salvo em disco. Retorna 0 se não existir.
+        /// </summary>
+        public static int LerRecorde()
         {
-            _jogoEncerrado = true;
-            _rodando = false;
+            if (!File.Exists(ArquivoRecorde)) return 0;
+            return int.TryParse(File.ReadAllText(ArquivoRecorde).Trim(), out int v) ? v : 0;
+        }
+
+        /// <summary>
+        /// Salva o recorde se o placar atual for maior.
+        /// </summary>
+        public static void SalvarRecordeSeNecessario(int placarAtual)
+        {
+            if (placarAtual > LerRecorde())
+                File.WriteAllText(ArquivoRecorde, placarAtual.ToString());
         }
     }
 }

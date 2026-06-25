@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Windows.Forms;
 
 namespace Trabalho_POO
 {
@@ -10,12 +9,20 @@ namespace Trabalho_POO
         private int _velocidade;
         private int _larguraTela;
 
+        // ── Piscar ao levar dano ──────────────────────────────────────────────
+        private Image _spriteOriginal;
+        private int _ticksInvencivel = 0;
+        private const int DuracaoPiscar = 90;  // ~1,5s a 60fps
+        private const int IntervaloLuz = 8;   // alterna visibilidade a cada 8 ticks
+
         public int Vidas => _vidas;
         public bool EstaVivo => _vidas > 0;
+        public bool EstaInvencivel => _ticksInvencivel > 0;
 
         public NaveJogador(Image sprite, int larguraTela, int alturaTela)
         {
             Sprite = sprite;
+            _spriteOriginal = sprite;
             Largura = 60;
             Altura = 40;
             _vidas = 3;
@@ -41,6 +48,27 @@ namespace Trabalho_POO
                 DirecaoProjetil.Cima, spriteProjetil, velocidade);
         }
 
-        public void PerderVida() { _vidas--; }
+        public void PerderVida()
+        {
+            if (EstaInvencivel) return; // já levou dano recentemente
+            _vidas--;
+            _ticksInvencivel = DuracaoPiscar;
+        }
+
+        /// <summary>
+        /// Chamado uma vez por frame para atualizar o efeito de piscar.
+        /// </summary>
+        public void Atualizar()
+        {
+            if (_ticksInvencivel <= 0) return;
+
+            _ticksInvencivel--;
+
+            bool visivel = (_ticksInvencivel / IntervaloLuz) % 2 == 0;
+            Sprite = visivel ? _spriteOriginal : null;
+
+            if (_ticksInvencivel == 0)
+                Sprite = _spriteOriginal;
+        }
     }
 }

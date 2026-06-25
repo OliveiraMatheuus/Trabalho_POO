@@ -60,6 +60,7 @@
     <Compile Include="GerenciadorDeColisoes.cs" />
     <Compile Include="Jogo.cs" />
     <Compile Include="Nave.cs" />
+    <Compile Include="NaveUFO.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Projetil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

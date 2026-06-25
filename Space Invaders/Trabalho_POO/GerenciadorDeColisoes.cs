@@ -7,10 +7,12 @@ namespace Trabalho_POO
     {
         public delegate void ColisaoHandler(string mensagem);
         public event ColisaoHandler OnAlienDestruido;
+        public event ColisaoHandler OnUFODestruido;
         public event ColisaoHandler OnVidaPerdida;
         public event ColisaoHandler OnDerrota;
         public event ColisaoHandler OnVitoria;
-        private GerenciadorDeAudio _audio;
+
+        private readonly GerenciadorDeAudio _audio;
 
         public GerenciadorDeColisoes(GerenciadorDeAudio audio)
         {
@@ -20,64 +22,80 @@ namespace Trabalho_POO
         public void Verificar(
             NaveJogador nave,
             List<Alien> aliens,
-            List<Barreira> barreiras, // <- Nova lista de barreiras aqui
+            List<Barreira> barreiras,
             List<Projetil> projetisJogador,
             List<Projetil> projetisAliens,
+            NaveUFO ufo,
             int alturaTela)
         {
             VerificarProjetisJogadorXAliens(aliens, projetisJogador);
+            VerificarProjetisJogadorXUFO(ufo, projetisJogador);
             VerificarProjetisAliensXNave(nave, projetisAliens, alturaTela);
-            VerificarColisaoBarreiras(barreiras, projetisJogador, projetisAliens); // <- Verificação nova
+            VerificarColisaoBarreiras(barreiras, projetisJogador, projetisAliens);
+            LimparProjetisForaDaTela(projetisJogador, projetisAliens, alturaTela);
             VerificarAliensNaBordaInferior(aliens, alturaTela);
             VerificarVitoria(aliens);
         }
 
-        private void VerificarColisaoBarreiras(List<Barreira> barreiras, List<Projetil> projetisJogador, List<Projetil> projetisAliens)
+        // ── Correção 1: limpeza de projéteis centralizada ─────────────────────
+        // Antes cada método limpava parcialmente e de forma inconsistente.
+        private void LimparProjetisForaDaTela(
+            List<Projetil> projetisJogador,
+            List<Projetil> projetisAliens,
+            int alturaTela)
         {
-            var projetisRemover = new List<Projetil>();
+            projetisJogador.RemoveAll(p => p.ForaDaTela(alturaTela));
+            projetisAliens.RemoveAll(p => p.ForaDaTela(alturaTela));
+        }
+
+        // ── Correção 2: remoção de barreiras sem iteração aninhada perigosa ───
+        // A versão anterior removia dentro de foreach aninhados, podendo pular
+        // colisões quando um projétil acertava duas barreiras no mesmo frame.
+        // Agora usamos HashSet para coletar tudo e removemos em passagem única.
+        private void VerificarColisaoBarreiras(
+            List<Barreira> barreiras,
+            List<Projetil> projetisJogador,
+            List<Projetil> projetisAliens)
+        {
+            var projetisJRemover = new HashSet<Projetil>();
+            var projetisARemover = new HashSet<Projetil>();
             var barreirasRemover = new List<Barreira>();
 
             foreach (var b in barreiras)
             {
-                // Verifica colisão com tiros do jogador
                 foreach (var p in projetisJogador)
-                {
-                    if (p.Bounds.IntersectsWith(b.Bounds))
+                    if (!projetisJRemover.Contains(p) && p.Bounds.IntersectsWith(b.Bounds))
                     {
-                        projetisRemover.Add(p);
+                        projetisJRemover.Add(p);
                         b.ReceberDano();
                     }
-                }
-                foreach (var p in projetisRemover) projetisJogador.Remove(p);
-                projetisRemover.Clear();
 
-                // Verifica colisão com tiros dos aliens
                 foreach (var p in projetisAliens)
-                {
-                    if (p.Bounds.IntersectsWith(b.Bounds))
+                    if (!projetisARemover.Contains(p) && p.Bounds.IntersectsWith(b.Bounds))
                     {
-                        projetisRemover.Add(p);
+                        projetisARemover.Add(p);
                         b.ReceberDano();
                     }
-                }
-                foreach (var p in projetisRemover) projetisAliens.Remove(p);
-                projetisRemover.Clear();
 
-                // Se a barreira ficou sem vida, marca para remover
                 if (!b.Ativa) barreirasRemover.Add(b);
             }
 
-            foreach (var b in barreirasRemover) barreiras.Remove(b);
+            // Remoção em passagem única — nunca modifica a lista durante iteração
+            projetisJogador.RemoveAll(p => projetisJRemover.Contains(p));
+            projetisAliens.RemoveAll(p => projetisARemover.Contains(p));
+            barreiras.RemoveAll(b => barreirasRemover.Contains(b));
         }
 
-        private void VerificarProjetisJogadorXAliens(List<Alien> aliens, List<Projetil> projetisJogador)
+        private void VerificarProjetisJogadorXAliens(
+            List<Alien> aliens,
+            List<Projetil> projetisJogador)
         {
-            var projetisRemover = new List<Projetil>();
-            var aliensRemover = new List<Alien>();
+            var projetisRemover = new HashSet<Projetil>();
+            var aliensRemover = new HashSet<Alien>();
 
             foreach (var p in projetisJogador)
                 foreach (var a in aliens)
-                    if (p.Bounds.IntersectsWith(a.Bounds))
+                    if (!aliensRemover.Contains(a) && p.Bounds.IntersectsWith(a.Bounds))
                     {
                         projetisRemover.Add(p);
                         aliensRemover.Add(a);
@@ -85,18 +103,43 @@ namespace Trabalho_POO
                         _audio?.TocarExplosaoAlien();
                     }
 
-            foreach (var p in projetisRemover) projetisJogador.Remove(p);
+            projetisJogador.RemoveAll(p => projetisRemover.Contains(p));
             foreach (var a in aliensRemover) { a.Destruir(); aliens.Remove(a); }
         }
 
-        private void VerificarProjetisAliensXNave(NaveJogador nave, List<Projetil> projetisAliens, int alturaTela)
+        private void VerificarProjetisJogadorXUFO(
+            NaveUFO ufo,
+            List<Projetil> projetisJogador)
+        {
+            if (ufo == null || !ufo.Ativo) return;
+
+            var remover = new List<Projetil>();
+            foreach (var p in projetisJogador)
+                if (p.Bounds.IntersectsWith(ufo.Bounds))
+                {
+                    remover.Add(p);
+                    ufo.Destruir();
+                    OnUFODestruido?.Invoke(ufo.PontosBonus.ToString());
+                    _audio?.TocarExplosaoAlien();
+                    break;
+                }
+
+            projetisJogador.RemoveAll(p => remover.Contains(p));
+        }
+
+        private void VerificarProjetisAliensXNave(
+            NaveJogador nave,
+            List<Projetil> projetisAliens,
+            int alturaTela)
         {
             var remover = new List<Projetil>();
 
             foreach (var p in projetisAliens)
             {
                 if (p.ForaDaTela(alturaTela)) { remover.Add(p); continue; }
-                if (p.Bounds.IntersectsWith(nave.Bounds))
+
+                // Respeita o período de invencibilidade pós-dano
+                if (!nave.EstaInvencivel && p.Bounds.IntersectsWith(nave.Bounds))
                 {
                     remover.Add(p);
                     nave.PerderVida();
@@ -105,7 +148,7 @@ namespace Trabalho_POO
                 }
             }
 
-            foreach (var p in remover) projetisAliens.Remove(p);
+            projetisAliens.RemoveAll(p => remover.Contains(p));
         }
 
         private void VerificarAliensNaBordaInferior(List<Alien> aliens, int alturaTela)
