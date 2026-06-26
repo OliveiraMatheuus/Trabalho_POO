@@ -6,17 +6,9 @@ namespace Trabalho_POO
 {
     public interface IMovivel { void Mover(); }
     public interface IAtira { Projetil Atirar(Image spriteProjetil, int velocidade); }
-
-    /// <summary>
-    /// Garante que qualquer entidade exponha seus limites de colisão
-    /// de forma uniforme, sem depender do tipo concreto.
-    /// </summary>
+    
     public interface ICollidable { Rectangle Bounds { get; } }
 
-    /// <summary>
-    /// Entidades que podem ser destruídas expõem esse contrato.
-    /// Permite que o GerenciadorDeColisoes opere sem conhecer os tipos concretos.
-    /// </summary>
     public interface IDestruivel
     {
         bool Ativo { get; }

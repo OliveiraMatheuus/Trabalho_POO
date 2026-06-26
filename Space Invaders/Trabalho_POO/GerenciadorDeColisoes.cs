@@ -37,8 +37,6 @@ namespace Trabalho_POO
             VerificarVitoria(aliens);
         }
 
-        // ── Correção 1: limpeza de projéteis centralizada ─────────────────────
-        // Antes cada método limpava parcialmente e de forma inconsistente.
         private void LimparProjetisForaDaTela(
             List<Projetil> projetisJogador,
             List<Projetil> projetisAliens,
@@ -48,10 +46,7 @@ namespace Trabalho_POO
             projetisAliens.RemoveAll(p => p.ForaDaTela(alturaTela));
         }
 
-        // ── Correção 2: remoção de barreiras sem iteração aninhada perigosa ───
-        // A versão anterior removia dentro de foreach aninhados, podendo pular
-        // colisões quando um projétil acertava duas barreiras no mesmo frame.
-        // Agora usamos HashSet para coletar tudo e removemos em passagem única.
+       
         private void VerificarColisaoBarreiras(
             List<Barreira> barreiras,
             List<Projetil> projetisJogador,
@@ -80,7 +75,6 @@ namespace Trabalho_POO
                 if (!b.Ativa) barreirasRemover.Add(b);
             }
 
-            // Remoção em passagem única — nunca modifica a lista durante iteração
             projetisJogador.RemoveAll(p => projetisJRemover.Contains(p));
             projetisAliens.RemoveAll(p => projetisARemover.Contains(p));
             barreiras.RemoveAll(b => barreirasRemover.Contains(b));

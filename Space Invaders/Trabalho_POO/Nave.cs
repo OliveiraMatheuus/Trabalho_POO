@@ -8,12 +8,10 @@ namespace Trabalho_POO
         private int _vidas;
         private int _velocidade;
         private int _larguraTela;
-
-        // ── Piscar ao levar dano ──────────────────────────────────────────────
         private Image _spriteOriginal;
         private int _ticksInvencivel = 0;
-        private const int DuracaoPiscar = 90;  // ~1,5s a 60fps
-        private const int IntervaloLuz = 8;   // alterna visibilidade a cada 8 ticks
+        private const int DuracaoPiscar = 90;  
+        private const int IntervaloLuz = 8;   
 
         public int Vidas => _vidas;
         public bool EstaVivo => _vidas > 0;
@@ -55,9 +53,6 @@ namespace Trabalho_POO
             _ticksInvencivel = DuracaoPiscar;
         }
 
-        /// <summary>
-        /// Chamado uma vez por frame para atualizar o efeito de piscar.
-        /// </summary>
         public void Atualizar()
         {
             if (_ticksInvencivel <= 0) return;
