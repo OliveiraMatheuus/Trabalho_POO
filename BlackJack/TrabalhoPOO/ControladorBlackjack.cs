@@ -29,7 +29,7 @@
             JogoAtivo = true;
             JogadorAtual.LimparMao();
             BancaAtual.LimparMao();
-            BaralhoJogo = new Baralho(); // Novo baralho misturado
+            BaralhoJogo = new Baralho(); 
 
             JogadorAtual.ReceberCarta(BaralhoJogo.ComprarCarta());
             JogadorAtual.ReceberCarta(BaralhoJogo.ComprarCarta());

@@ -3,11 +3,7 @@ using System.Drawing;
 
 namespace Trabalho_POO
 {
-    /// <summary>
-    /// Nave-mãe que cruza o topo da tela horizontalmente em intervalos aleatórios.
-    /// Concede pontos bônus ao ser destruída.
-    /// Demonstra herança de EntidadeJogo + IMovivel + IDestruivel.
-    /// </summary>
+    
     public class NaveUFO : EntidadeJogo, IMovivel, IDestruivel
     {
         private int _velocidade;
@@ -42,15 +38,7 @@ namespace Trabalho_POO
             {
                 g.DrawImage(Sprite, X, Y, Largura, Altura);
             }
-            else
-            {
-                // Fallback visual sem sprite
-                g.FillEllipse(Brushes.Magenta, X, Y, Largura, Altura);
-                g.DrawEllipse(Pens.White, X, Y, Largura, Altura);
-                g.FillEllipse(Brushes.Cyan,
-                    X + Largura / 4, Y - Altura / 4,
-                    Largura / 2, Altura / 2);
-            }
+           
         }
     }
 }
